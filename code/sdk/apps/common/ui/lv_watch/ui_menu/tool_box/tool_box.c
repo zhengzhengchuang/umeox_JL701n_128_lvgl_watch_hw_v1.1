@@ -218,7 +218,11 @@ static void camera_cb(lv_event_t *e)
     if(ble_bt_connect == 0 || ble_bt_connect == 2)
         ui_menu_jump(ui_act_id_not_conn); 
     else
+    {
+        DevReqOpCameraHandle(DevReqEnterCamera);
         ui_menu_jump(ui_act_id_camera);
+    }
+        
     return;
 }
 

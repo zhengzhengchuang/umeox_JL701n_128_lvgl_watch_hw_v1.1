@@ -44,7 +44,7 @@ void render_start_cb(struct _lv_disp_drv_t * disp_drv){
     //  lcd_wait_te();
 }
 
-static u16 bl_timer = 0;
+static u16 bl_timer;
 static void bl_timer_cb(void *priv)
 {
     if(bl_timer)
@@ -58,6 +58,8 @@ static void bl_timer_cb(void *priv)
 
     if(lcd->backlight_ctrl)
         lcd->backlight_ctrl(bl_val);
+
+    //printf("*********************bl_timer_cb\n");
 
     return;
 }
@@ -79,9 +81,12 @@ static void lvgl_task(void *p)
     bool BondFlag = GetDevBondFlag();
     u8 charge_state = GetChargeState();
     if(BondFlag == false)
-        act_id = ui_act_id_dev_bond;
-    else if(charge_state == 1)
+    {
+        act_id = ui_act_id_bond_lang;
+    }else if(charge_state == 1)
+    {
         act_id = ui_act_id_charge;
+    } 
     ui_info_cache_init(act_id);
     
     lv_port_disp_init(p);
@@ -108,6 +113,7 @@ static void lvgl_task(void *p)
     if(charge_state == 0)
     {
         ui_menu_jump(act_id);
+        printf("**************************ui_menu_jump\n");
     }else
     {
         SetChargePowerFlag(1);
@@ -205,7 +211,7 @@ static void lvgl_task(void *p)
     // 不开PSRAM下，分屏刷要看绘图复杂度,等TE可能消除切线，不等TE切线比较明显
     // 等TE的帧率 = TE频率/2，帧率是固定的，如屏幕的TE是44Hz，那么实际刷新是22Hz
     // 不等TE的帧率 = 极限刷屏的帧率
-    SetUsrWaitTe(1);
+    SetUsrWaitTe(0);
 
     //  用户动态控制是否全屏刷
     // extern volatile u8 usr_full_screen;

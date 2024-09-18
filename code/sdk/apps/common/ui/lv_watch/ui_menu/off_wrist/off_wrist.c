@@ -43,12 +43,12 @@ static void menu_display_cb(lv_obj_t *obj)
     widget_label_para.long_mode = LV_LABEL_LONG_WRAP;
     widget_label_para.text_align = LV_TEXT_ALIGN_CENTER;
     widget_label_para.label_text_color = lv_color_hex(0xffffff);
-    widget_label_para.label_ver_center = false;
+    widget_label_para.label_ver_center = true;
     widget_label_para.user_text_font = NULL;
     widget_label_para.label_parent = obj;
     widget_label_para.label_text = get_lang_txt_with_id(lang_txtid_wear_condition);
-    lv_obj_t *off_wrist_label = common_widget_label_create(&widget_label_para);
-    lv_obj_align(off_wrist_label, LV_ALIGN_TOP_MID, 0, 332);
+    lv_obj_t *find_dev_label = common_widget_label_create(&widget_label_para);
+    lv_obj_align(find_dev_label, LV_ALIGN_TOP_MID, 0, 332);
 
     return;
 }

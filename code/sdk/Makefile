@@ -297,29 +297,12 @@ c_SRC_FILES := \
 	apps/common/device/sensor_iic/sensor_iic.c \
 	apps/common/device/gSensor/qmi8658/qmi8658.c \
 	apps/common/device/m_sensor/qmc6309/qmc6309.c \
+	apps/common/device/hr_sensor/hx3605/hx3605.c \
+	apps/common/device/hr_sensor/hx3605/hx3605_factory_test.c \
+	apps/common/device/hr_sensor/hx3605/hx3605_hrs_agc.c \
+	apps/common/device/hr_sensor/hx3605/hx3605_hrv_agc.c \
+	apps/common/device/hr_sensor/hx3605/hx3605_spo2_agc.c \
 	apps/common/device/motor/motor.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/call/src/gh30x_demo_algo_call_adt.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/call/src/gh30x_demo_algo_call_hr.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/call/src/gh30x_demo_algo_call_hrv.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/call/src/gh30x_demo_algo_call_nadt.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/call/src/gh30x_demo_algo_call_spo2.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/common/src/gh30x_demo_algo_call.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/common/src/gh30x_demo_algo_config.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/common/src/gh30x_demo_algo_hook.c \
-	apps/common/device/hr_sensor/gh3018/Algo_Code/common/src/gh30x_demo_algo_memory.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_comm_pkg.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_ctrl.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_hook.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_port.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_process.c \
-	apps/common/device/hr_sensor/gh3018/Drv_Code/src/gh30x_example_reg_array.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/heart_net_org_dll.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/HRNet_knConfNetWeights.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/HRNet_knSceneNetWeights.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/HRNet_knSceneSwitchWeights.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/HRNet_knWeights.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/HRNet_knWeightsSmall.c \
-	apps/common/device/hr_sensor/gh3018/Lib_Code/src/pv_v2.0.1_spo2wrnet_for_GH3011_masimo_2155fb.c \
 	apps/common/device/key/adkey.c \
 	apps/common/device/key/iokey.c \
 	apps/common/device/key/irkey.c \
@@ -331,9 +314,9 @@ c_SRC_FILES := \
 	apps/common/device/norflash/inside_norflash.c \
 	apps/common/device/norflash/norflash.c \
 	apps/common/device/norflash/norflash_sfc.c \
-	apps/common/device/touch_panel/chsc6x/chsc6x_comp.c \
 	apps/common/device/touch_panel/chsc6x/chsc6x_main.c \
 	apps/common/device/touch_panel/chsc6x/chsc6x_platform.c \
+	apps/common/device/touch_panel/chsc6x/chsc6x_comp.c \
 	apps/common/device/usb/device/cdc.c \
 	apps/common/device/usb/device/custom_hid.c \
 	apps/common/device/usb/device/descriptor.c \
@@ -922,6 +905,7 @@ c_SRC_FILES := \
 	cpu/br28/ui_driver/lcd_drive/lcd_spi/lcd_spi_st7789_BOE1.54_update_240x240.c \
 	cpu/br28/ui_driver/lcd_drive/lcd_spi/lcd_spi_st7789v_240x240.c \
 	cpu/br28/ui_driver/lcd_drive/lcd_spi/lcd_qspi_ft2308_368x448.c \
+	cpu/br28/ui_driver/lcd_drive/lcd_spi/lcd_qspi_co5300_368x448.c \
 	cpu/br28/ui_driver/lcd_seg/lcd_seg3x9_driver.c \
 	cpu/br28/ui_driver/led7/led7_driver.c \
 	cpu/br28/ui_driver/lvgl/lv_port_disp.c \
@@ -1023,7 +1007,6 @@ c_SRC_FILES := \
 	apps/common/ui/lv_watch/ui_menu/set/set_main.c \
 	apps/common/ui/lv_watch/ui_menu/sound_ctrl/sound_ctrl.c \
 	apps/common/ui/lv_watch/ui_menu/menu_view/menu_view.c \
-	apps/common/ui/lv_watch/ui_menu/watchface/watchface_01.c \
 	apps/common/ui/lv_watch/ui_menu/watchface/watchface_02.c \
 	apps/common/ui/lv_watch/ui_menu/watchface/watchface_03.c \
 	apps/common/ui/lv_watch/ui_menu/watchface/watchface_04.c \
@@ -1040,6 +1023,7 @@ c_SRC_FILES := \
 	apps/common/ui/lv_watch/ui_menu/disp_ctrl/screen_sleep.c \
 	apps/common/ui/lv_watch/ui_menu/unit_switch/unit_switch.c \
 	apps/common/ui/lv_watch/ui_menu/about/about.c \
+	apps/common/ui/lv_watch/ui_menu/about/gm_test.c \
 	apps/common/ui/lv_watch/ui_menu/reset/reset.c \
 	apps/common/ui/lv_watch/ui_menu/find_dev/find_dev.c \
 	apps/common/ui/lv_watch/ui_menu/split_screen/split_screen.c \
@@ -1064,6 +1048,7 @@ c_SRC_FILES := \
 	apps/common/ui/lv_watch/ui_menu/stopwatch/stopwatch_over.c \
 	apps/common/ui/lv_watch/ui_menu/hr/hr_sample.c \
 	apps/common/ui/lv_watch/ui_menu/bo/bo_sample.c \
+	apps/common/ui/lv_watch/ui_menu/activity/activity.c \
 	apps/common/ui/lv_watch/ui_menu/tasbih/tasbih_main.c \
 	apps/common/ui/lv_watch/ui_menu/tasbih/tasbih_start_time.c \
 	apps/common/ui/lv_watch/ui_menu/tasbih/tasbih_end_time.c \
@@ -1091,6 +1076,7 @@ c_SRC_FILES := \
 	apps/common/ui/lv_watch/ui_menu/prayer_time/prayer_time_advance.c \
 	apps/common/ui/lv_watch/ui_menu/dev_bond/dev_bond.c \
 	apps/common/ui/lv_watch/ui_menu/dev_bond/new_bond.c \
+	apps/common/ui/lv_watch/ui_menu/dev_bond/bond_lang.c \
 	apps/common/ui/lv_watch/ui_menu/allah_name/al_name_ex.c \
 	apps/common/ui/lv_watch/ui_menu/allah_name/al_name_list_0.c \
 	apps/common/ui/lv_watch/ui_menu/allah_name/al_name_list_1.c \
@@ -1099,7 +1085,8 @@ c_SRC_FILES := \
 	apps/common/ui/lv_watch/ui_menu/quran_play/quran_list.c \
 	apps/common/ui/lv_watch/ui_menu/quran_play/quran_main.c \
 	apps/common/ui/lv_watch/ui_menu/quran_play/quran_volume.c \
-	apps/common/ui/lv_watch/ui_menu/factory/factory.c \
+	apps/common/ui/lv_watch/ui_menu/factory/info_factory.c \
+	apps/common/ui/lv_watch/ui_menu/factory/lcd_factory.c \
 	apps/common/ui/lv_watch/ui_menu/azkar/azkar_list.c \
 	apps/common/ui/lv_watch/ui_menu/azkar/azkar_sec_ar.c \
 	apps/common/ui/lv_watch/ui_menu/azkar/azkar_sec_comm.c \
@@ -1213,13 +1200,8 @@ LFLAGS := \
 	cpu/br28/liba/wrist_bright.a \
 	cpu/br28/liba/Preprocess.a \
 	cpu/br28/liba/qmc6309/fangkuang.a \
-	cpu/br28/liba/gh3018/Algo_Lib/common_pi32v2_clang-4.0.1.a \
-	cpu/br28/liba/gh3018/Algo_Lib/hba_pi32v2_clang-4.0.1.a \
-	cpu/br28/liba/gh3018/Algo_Lib/hrv_pi32v2_clang-4.0.1.a \
-	cpu/br28/liba/gh3018/Algo_Lib/nadt_pi32v2_clang-4.0.1.a \
-	cpu/br28/liba/gh3018/Algo_Lib/spo2_pi32v2_clang-4.0.1.a \
-	cpu/br28/liba/gh3018/Drv_Lib/Default_CLANG_PI32.a \
 	cpu/br28/liba/gomore/libgomore.a \
+	cpu/br28/liba/hx3605/CodeBlocks_hx3605_hrs_spo2_hrv_20230724_v1.0.a \
 	cpu/br28/liba/fall_detection.a \
 	cpu/br28/liba/motion_detection.a \
 	cpu/br28/liba/sedentary.a \

@@ -513,11 +513,11 @@ DAC硬件上的连接方式,可选的配置：
 //是否支持拔出充电自动开机功能
 #define TCFG_CHARGE_OFF_POWERON_NE			DISABLE
 /*充电截止电压可选配置*/
-#define TCFG_CHARGE_FULL_V					CHARGE_FULL_V_4534//CHARGE_FULL_V_4199
+#define TCFG_CHARGE_FULL_V					CHARGE_FULL_V_MAX//CHARGE_FULL_V_4199
 /*充电截止电流可选配置*/
-#define TCFG_CHARGE_FULL_MA					CHARGE_FULL_mA_20
+#define TCFG_CHARGE_FULL_MA					CHARGE_FULL_mA_10
 /*恒流充电电流可选配置*/
-#define TCFG_CHARGE_MA						CHARGE_mA_250
+#define TCFG_CHARGE_MA						CHARGE_mA_300
 /*涓流充电电流配置*/
 #define TCFG_CHARGE_TRICKLE_MA              CHARGE_mA_20
 
@@ -578,7 +578,8 @@ DAC硬件上的连接方式,可选的配置：
 #define TCFG_LCD_OLED_ENABLE	            DISABLE_THIS_MOUDLE
 #define TCFG_LCD_GC9A01_ENABLE              DISABLE_THIS_MOUDLE
 #define TCFG_LCD_QSPI_ST77916_ENABLE        DISABLE_THIS_MOUDLE
-#define TCFG_LCD_QSPI_FT2308_ENABLE         ENABLE_THIS_MOUDLE
+#define TCFG_LCD_QSPI_FT2308_ENABLE         DISABLE_THIS_MOUDLE
+#define TCFG_LCD_QSPI_CO5300_ENABLE         ENABLE_THIS_MOUDLE
 
 #define TCFG_LRC_LYRICS_ENABLE              DISABLE_THIS_MOUDLE  //歌词显示
 
@@ -587,7 +588,7 @@ DAC硬件上的连接方式,可选的配置：
 #define LCD_MATCH_BY_ID                     1 //通过屏幕id来匹配
 #define TCFG_LCD_MATCH_MODE                 LCD_MATCH_BY_LOGO
 #if (TCFG_LCD_MATCH_MODE == LCD_MATCH_BY_LOGO)
-#define LCD_LOGO                            "ft2308"
+#define LCD_LOGO                            "co5300"
 #else
 #define LCD_LOGO                            "null"//通过id匹配, 忽略logo参数
 #endif
@@ -627,10 +628,10 @@ DAC硬件上的连接方式,可选的配置：
 //2:使用MCPWM模块控制背光(低功耗不能输出)
 #define TCFG_BACKLIGHT_PWM_MODE             -1
 #define TCFG_BACKLIGHT_PWM_IO               IO_PORTB_10
-#define TCFG_BACKLIGHT_MIN_VAL              (65)
+#define TCFG_BACKLIGHT_MIN_VAL              (40)
 #define TCFG_BACKLIGHT_MAX_VAL              (100)
 #define TCFG_BACKLIGHT_MAX_LEVEL            (5)
-#define TCFG_BACKLIGHT_STEPS_VAL            (7)
+#define TCFG_BACKLIGHT_STEPS_VAL            (12)
 #if (TCFG_BACKLIGHT_PWM_MODE == 1)
 #undef  TCFG_PWMLED_ENABLE
 #define TCFG_PWMLED_ENABLE					DISABLE_THIS_MOUDLE			//是否支持PMW LED推灯模块
@@ -1069,7 +1070,7 @@ DAC硬件上的连接方式,可选的配置：
 
 #define RCSP_USE_BLE      0
 #define RCSP_USE_SPP      1
-#define RCSP_CHANNEL_SEL  RCSP_USE_SPP
+#define RCSP_CHANNEL_SEL  RCSP_USE_SPP//RCSP_USE_BLE
 
 #define RCSP_SMARTBOX_ADV_EN			0
 

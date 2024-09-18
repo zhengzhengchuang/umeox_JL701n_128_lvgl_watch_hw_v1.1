@@ -55,67 +55,205 @@ void SetSlpPpgEnState(u8 en)
     return;
 }
 
-static u32 WIdx;
-static u32 RIdx;
-static u32 WLen;
-static u32 RLen;
-static u8 WRInit = 1;
-#define Data_Len 25
-#define FifoLen (Data_Len*3)
-static float w_raw_data[FifoLen];
-static float r_raw_data[Data_Len];
+static u8 SlpPpgWear;
+u8 GetSlpPpgWearState(void)
+{
+    return SlpPpgWear;
+}
+
+void SetSlpPpgWearState(u8 state)
+{
+    /* 如果不是睡眠ppg开的，不管 */
+    u8 slp_ppg_en = GetSlpPpgEnState();
+    if(slp_ppg_en == 0) return;
+
+    SlpPpgWear = state;
+    return;
+}
+
+static u32 Widx;
+static u32 Wlen;
+#define Data_Len (25)
+#define FifoLen (Data_Len*2)
+static float w_data[FifoLen];
+void SlpHrRawDataInit(void)
+{
+#if 0
+    WIdx = 0; RIdx = 0;
+    WLen = 0; RLen = 0;
+    for(u16 i = 0; i < Data_Len; i++)
+        r_raw_data[i] = 0.0f;
+#else
+    Widx = 0; Wlen = 0;
+#endif
+    return;
+}
+
 u8 GetSlpHrRawDataLen(void)
 {
+    u8 len;
     u8 slp_ppg_en = GetSlpPpgEnState();
     if(slp_ppg_en == 0)
-    {
-        if(WRInit == 0)
-        {
-            WIdx = 0; RIdx = 0;
-            WLen = 0; RLen = 0;
-            for(u8 i = 0; i < Data_Len; i++)
-                r_raw_data[i] = 0.0f;
-            WRInit = 1;
-        }
+        len = 0;
+    else
+        len = Data_Len;
 
-        return 0;
-    }
-
-    WRInit = 0;
-    return Data_Len;
+    return len;
 }
 
 float *GetSlpHrRawData(void)
 {
+#if 0
     static float *pData;
     pData = r_raw_data;
 
-    if(WLen < RLen) goto __end;
+    //if(FifoWFlag == 1) goto __end;
 
-    if(WLen - RLen >= Data_Len)
+    if(WLen <= RLen) goto __end;
+
+    //printf("WLen = %d, RLen = %d\n", WLen, RLen);
+
+    u8 rlen = WLen - RLen;
+    if(rlen >= Data_Len)
     {
-        memcpy(pData, &w_raw_data[RIdx], Data_Len*(sizeof(float)));
-        RIdx += Data_Len;
-        RIdx %= FifoLen;
-        RLen += Data_Len;
-    }
+        if(RIdx + Data_Len <= FifoLen)
+        {
+            memcpy(pData, &w_raw_data[RIdx], Data_Len*sizeof(float));
+            RIdx += Data_Len;
+        }else
+        {
+            u8 idx = 0;
+            u8 remain = FifoLen - RIdx;
+            if(remain > 0)
+            {
+                memcpy(&pData[idx], &w_raw_data[RIdx], remain*sizeof(float));
+                idx += remain;
+            }
+            RIdx = 0;
+            remain = Data_Len - remain;
+            if(remain > 0)
+            {
+                memcpy(&pData[idx], &w_raw_data[RIdx], remain*sizeof(float));
+                RIdx += remain;
+            }
+        }
 
-__end:
+        RLen += Data_Len;
+    }else
+    {
+        //如果说不够25条，最后一条补
+        if(RIdx + rlen <= FifoLen)
+        {
+            memcpy(pData, &w_raw_data[RIdx], rlen*sizeof(float));
+            RIdx += rlen;
+
+            u8 idx = rlen;
+            u8 remain = Data_Len - rlen;//1
+            for(u8 i = 0; i < remain; i++)
+            {
+                pData[idx + i] = pData[idx + i - 1];
+            }
+        }else
+        {
+            u8 idx = 0;
+            u8 remain = FifoLen - RIdx;
+            if(remain > 0)
+            {
+                memcpy(&pData[idx], &w_raw_data[RIdx], remain*sizeof(float));
+                idx += remain;
+            }
+            RIdx = 0;
+            remain = rlen - remain;
+            if(remain > 0)
+            {
+                memcpy(&pData[idx], &w_raw_data[RIdx], remain*sizeof(float));
+                RIdx += remain;
+                idx += remain;
+            }
+
+            remain = Data_Len - rlen;
+            for(u8 i = 0; i < remain; i++)
+            {
+                pData[idx + i] = pData[idx + i - 1];
+            }
+        }
+
+        RLen += rlen;
+    }
+    
+    __end:
     return pData;
+#else
+    static float r_data[Data_Len];
+
+    if(Wlen == 0) goto __end;
+    printf("Wlen = %d\n", Wlen);
+
+    memset(r_data, 0, sizeof(r_data));
+    u32 Rlen = Wlen;
+    Widx = 0; Wlen = 0;
+    u32 count = Rlen;
+    if(count > Data_Len)
+        count = Data_Len;
+    memcpy(r_data, w_data, count*sizeof(float));//20
+
+    if(count < Data_Len)
+    {
+        u8 idx = count;
+        u8 remain = Data_Len - count;//5
+        for(u8 i = 0; i < remain; i++)
+        {
+            r_data[idx + i] = r_data[idx + i - 1];
+        }
+    }
+    // for(u8 i = 0; i < Data_Len; i++)
+    // {
+    //     printf("r_data[%d] = %f", i, r_data[i]);
+    // }
+__end:
+    return r_data;
+#endif
 }
 
-void SetSlpHrRawData(u32 *buf, u16 len)
+void SetSlpHrRawData(int32_t *buf, u16 len)
 {
     u8 slp_ppg_en = GetSlpPpgEnState();
     if(slp_ppg_en == 0) return;
 
-    for(u16 i = 0; i < Data_Len; i++)
-        w_raw_data[WIdx+i] = buf[i]*1.0f;
-            
-    WIdx += Data_Len;
-    WIdx %= FifoLen;
-    WLen += Data_Len;
+    //FifoWFlag = 1;
 
+    u8 idx = 0;
+    if(Widx + len <= FifoLen)
+    {
+        for(u16 i = 0; i < len; i++)
+        {
+            w_data[Widx+i] = buf[idx + i]*1.0f;
+        }
+        Widx += len;
+    }else
+    {
+        u8 remain = FifoLen - Widx;
+        for(u16 i = 0; i < remain; i++)
+        {
+            w_data[Widx+i] = buf[idx + i]*1.0f;
+        }
+        idx += remain;
+
+        Widx = 0;
+        remain = len - remain;
+        for(u16 i = 0; i < remain; i++)
+        {
+            w_data[Widx+i] = buf[idx + i]*1.0f;
+        }
+        Widx += remain;
+    }
+    Wlen += len;
+    //printf("Wlen = %d\n", Wlen);
+    //FifoWFlag = 0;
+    // for(u8 i = 0; i < Wlen; i++)
+    // {
+    //     printf("w_data[%d] = %f", i, w_data[i]);
+    // }
     return;
 }
 
@@ -191,12 +329,13 @@ static void SetSleepAutoDetEnFlag(u8 en)//0 1
     return;
 }
 
-#define Slp_Max_Sum (3)
-static u8 slp_sum_num;
-static u8 slp_sec_num[Slp_Max_Sum];
-static SlpSecCtx_t *pslp_ctx[Slp_Max_Sum];
-static SlpSecCtx_t awake_inv[Slp_Max_Sum-1];
+// #define Slp_Max_Sum (3)
+// static u8 slp_sum_num;
+static u8 SlpSecNum;
+static SlpSecCtx_t pslp_ctx[Slp_Max_Sec];
+// static SlpSecCtx_t awake_inv[Slp_Max_Sum-1];
 
+#if 0
 static void ClearSlpSec(void)
 {
     slp_sum_num = 0;
@@ -208,9 +347,18 @@ static void ClearSlpSec(void)
         pslp_ctx[i] = NULL;
     }
 
+    //memset(awake_inv, 0, sizeof())
     // memset(slp_inv_st, 0, sizeof(slp_inv_st));
     // memset(slp_inv_et, 0, sizeof(slp_inv_et));
 
+    return;
+}
+#endif
+
+static void SlpSecInit(void)
+{
+    SlpSecNum = 0;
+    memset(pslp_ctx, 0, sizeof(SlpSecCtx_t)*Slp_Max_Sec);
     return;
 }
 
@@ -218,6 +366,162 @@ static void GetSecSlpSummary(struct SleepSummaryInput *in, struct SleepSummaryOu
 {
     getEmbeddedSleepSummary(in, out);
 
+    printf("------------------>sleep type = %d\n", out->type);
+    if(out->type == 1){
+        SlpSecInit();
+        SlpDataVmReset();
+
+        //长睡
+        u8 idx = 0;
+        int8_t last_stage = -1;//上一个状态
+        int32_t numEpochs = out->numEpochs;
+        for(int32_t i = 0; i < numEpochs; i++)
+        {
+            if(last_stage != out->stages[i])
+            {
+                if(idx >= Slp_Max_Sec)
+                    break;
+
+                last_stage = out->stages[i];
+                pslp_ctx[idx].stage = last_stage;
+                pslp_ctx[idx].start_ts = out->startTS + i*30;
+                pslp_ctx[idx].end_ts = out->startTS + (i+1)*30;
+                idx += 1;
+            }else
+            {
+                if(idx == 0) continue;
+
+                pslp_ctx[idx - 1].end_ts = out->startTS + (i+1)*30;
+            }
+        }
+        SlpSecNum = idx;
+
+        /* 开始时间为第一段start_ts */
+        u32 start_ts = pslp_ctx[0].start_ts;
+        /* 结束时间为最后一段的end_ts */
+        u8 lidx;
+        if(idx > 0) lidx = idx-1;
+        else lidx = 0;
+        u32 end_ts = pslp_ctx[lidx].end_ts;
+        printf("start_ts = %d, end_ts = %d\n", start_ts, end_ts);
+
+        /* 用户展示数据 */
+        __this_module->valid = true;
+        __this_module->slp_start_ts = start_ts;
+        __this_module->slp_end_ts = end_ts;
+        __this_module->slp_dur = (end_ts - start_ts)/60;
+        printf("__this_module slp_dur = %d\n", __this_module->slp_dur);
+        for(u8 i = 0; i < idx; i++)
+        {
+            u8 stage = pslp_ctx[i].stage;
+            u32 dur = pslp_ctx[i].end_ts - pslp_ctx[i].start_ts;
+            printf("__this_module i = %d, stage = %d:dur = %d\n", i, stage, dur);
+            if(stage == slp_awake)
+                __this_module->wake_dur += dur;
+            else if(stage == slp_rem)
+                __this_module->r_slp_dur += dur;
+            else if(stage == slp_light)
+                __this_module->l_slp_dur += dur;
+            else if(stage == slp_deep)
+                __this_module->d_slp_dur += dur;
+        }
+        
+        /*单位分钟*/
+        __this_module->wake_dur /= 60;
+        __this_module->r_slp_dur /= 60;
+        __this_module->l_slp_dur /= 60;
+        __this_module->d_slp_dur /= 60;
+        printf("__this_module wake_dur = %d, r_slp_dur = %d, l_slp_dur = %d, d_slp_dur = %d\n", __this_module->wake_dur, \
+            __this_module->r_slp_dur, __this_module->l_slp_dur, __this_module->d_slp_dur);
+        SlpDataVmWrite();
+        // __this_module->valid = true;
+        // __this_module->slp_start_ts = out->startTS;
+        // __this_module->slp_end_ts = out->endTS;
+        // __this_module->slp_dur = (u32)(out->sleepPeriod + 0.5f);
+        // __this_module->d_slp_dur = (u32)(out->deepNumMinutes + 0.5f);
+        // __this_module->l_slp_dur = (u32)(out->lightNumMinutes + 0.5f);
+        // __this_module->r_slp_dur = (u32)(out->remNumMinutes + 0.5f);
+        // __this_module->wake_dur = (u32)(out->wakeNumMinutes + 0.5f);
+        //SlpDataVmWrite();
+#if 0
+        memset(pslp_ctx, 0, sizeof(SlpSecCtx_t)*Slp_Max_Sec);
+
+        //长睡
+        u8 idx = 0;
+        int8_t last_stage = -1;//上一个状态
+        int32_t numEpochs = out->numEpochs;
+        for(int32_t i = 0; i < numEpochs; i++)
+        {
+            if(last_stage != out->stages[i])
+            {
+                if(idx >= Slp_Max_Sec)
+                    break;
+
+                last_stage = out->stages[i];
+                pslp_ctx[idx].stage = last_stage;
+                pslp_ctx[idx].start_ts = out->startTS + i*30;
+                pslp_ctx[idx].end_ts = out->startTS + (i+1)*30;
+                idx += 1;
+            }else
+            {
+                if(idx == 0) continue;
+
+                pslp_ctx[idx - 1].end_ts = out->startTS + (i+1)*30;
+            }
+        }
+
+        /* 开始时间为第一段start_ts */
+        u32 start_ts = pslp_ctx[0].start_ts;
+        /* 结束时间为最后一段的end_ts */
+        u8 lidx;
+        if(idx > 0) lidx = idx-1;
+        else lidx = 0;
+        u32 end_ts = pslp_ctx[0].end_ts;
+        printf("start_ts = %d, end_ts = %d\n", start_ts, end_ts);
+
+        /* 用户展示数据 */
+        __this_module->valid = true;
+        __this_module->slp_start_ts = start_ts;
+        __this_module->slp_end_ts = end_ts;
+        __this_module->slp_dur = (end_ts - start_ts)/60;
+        printf("__this_module slp_dur = %d\n", __this_module->slp_dur);
+        for(u8 i = 0; i < idx; i++)
+        {
+            u8 stage = pslp_ctx[i].stage;
+            u32 dur = pslp_ctx[i].end_ts - pslp_ctx[i].start_ts;
+            printf("__this_module i = %d, stage = %d:dur = %d\n", i, stage, dur);
+            if(stage == slp_awake)
+                __this_module->wake_dur += dur;
+            else if(stage == slp_rem)
+                __this_module->r_slp_dur += dur;
+            else if(stage == slp_light)
+                __this_module->l_slp_dur += dur;
+            else if(stage == slp_deep)
+                __this_module->d_slp_dur += dur;
+        }
+        
+        /*单位分钟*/
+        __this_module->wake_dur /= 60;
+        __this_module->r_slp_dur /= 60;
+        __this_module->l_slp_dur /= 60;
+        __this_module->d_slp_dur /= 60;
+        printf("__this_module wake_dur = %d, r_slp_dur = %d, l_slp_dur = %d, d_slp_dur = %d\n", __this_module->wake_dur, \
+            __this_module->r_slp_dur, __this_module->l_slp_dur, __this_module->d_slp_dur);
+        SlpDataVmWrite();
+#endif
+    }else if(out->type == 2){
+        //短睡
+        // __this_module->valid = true;
+        // __this_module->slp_start_ts = out->startTS;
+        // __this_module->slp_end_ts = out->endTS;
+        // __this_module->slp_dur = 0;
+    }
+
+
+#if 0
+    getEmbeddedSleepSummary(in, out);
+
+    printf("sleep type = %d\n", out->type);
     /* 短睡不做处理 */
     if(out->type == 2) return;
 
@@ -255,17 +559,103 @@ static void GetSecSlpSummary(struct SleepSummaryInput *in, struct SleepSummaryOu
 
         slp_sec_num[ssn] = idx;
         slp_sum_num += 1;
+
+        for(u8 i = 0; i < idx; i++)
+        {
+            printf("%d:st = %d, se = %d, stage = %d\n", i, \
+                pslp_ctx[ssn][i].start_ts, pslp_ctx[ssn][i].end_ts, pslp_ctx[ssn][i].stage);
+        }
     }
+#endif
 
     return;
 }
 
+#if 1
 static void GetDaySlpSummary(void)
 {
+    if(SlpSecNum == 0) return;
+    u8 sec_num = SlpSecNum;
+
+    for(u8 i = 0; i < sec_num; i++)
+    {
+        w_sleep.ctx[i].stage = pslp_ctx[i].stage;
+        w_sleep.ctx[i].start_ts = pslp_ctx[i].start_ts;
+        w_sleep.ctx[i].end_ts = pslp_ctx[i].end_ts;
+    }
+
+    for(u8 i = 0; i < sec_num; i++)
+    {
+        printf("w_sleep %d: stage = %d, start_ts = %d, end_ts = %d\n", i, \
+            w_sleep.ctx[i].stage, w_sleep.ctx[i].start_ts, w_sleep.ctx[i].end_ts);
+    }
+
+    /* 开始时间为第一段start_ts */
+    u32 start_ts = w_sleep.ctx[0].start_ts;
+    /* 结束时间为最后一段的end_ts */
+    u8 lidx;
+    if(sec_num > 0) lidx = sec_num-1;
+    else lidx = 0;
+    u32 end_ts = w_sleep.ctx[lidx].end_ts;
+
+    w_sleep.total_start_ts = start_ts;
+    w_sleep.total_end_ts = end_ts;
+    w_sleep.SecNum = sec_num;
+    w_sleep.check_code = Nor_Vm_Check_Code;
+    int msg[2];
+    msg[0] = ui_msg_nor_sleep_write;
+    post_ui_msg(msg, 1);
+    printf("w_sleep start_ts = %d, end_ts = %d\n", start_ts, end_ts);
+#if 0
+    //短睡不做处理
+    struct SleepSummaryOutput *out = &slp_out;
+    if(out->type == 2) return;
+
+    u8 idx = 0;
+    int8_t last_stage = -1;//上一个状态
+    int32_t numEpochs = out->numEpochs;
+    for(int32_t i = 0; i < numEpochs; i++)
+    {
+        if(last_stage != out->stages[i])
+        {
+            if(idx >= Slp_Max_Sec)
+                break;
+
+            last_stage = out->stages[i];
+            w_sleep.ctx[idx].stage = last_stage;
+            w_sleep.ctx[idx].start_ts = out->startTS + i*30;
+            w_sleep.ctx[idx].end_ts = out->startTS + (i+1)*30;
+            idx += 1;
+        }else
+        {
+            if(idx == 0) continue;
+
+            w_sleep.ctx[idx - 1].end_ts = out->startTS + (i+1)*30;
+        }
+    }
+
+    for(u8 i = 0; i < idx; i++)
+    {
+        printf("w_sleep %d: stage = %d, start_ts = %d, end_ts = %d\n", i, \
+            w_sleep.ctx[i].stage, w_sleep.ctx[i].start_ts, w_sleep.ctx[i].end_ts);
+    }
+
+    w_sleep.total_start_ts = out->startTS;
+    w_sleep.total_end_ts = out->endTS;
+    w_sleep.SecNum = idx;
+    w_sleep.check_code = Nor_Vm_Check_Code;
+    int msg[2];
+    msg[0] = ui_msg_nor_sleep_write;
+    post_ui_msg(msg, 1);
+    printf("w_sleep: st = %d, et = %d, num = %d\n", out->startTS, out->endTS, idx);
+#endif
+
+#if 0
     if(slp_sum_num == 0) 
         return;
 
     u8 ssn = slp_sum_num;
+    printf("____________%s:ssn = %d\n", __func__, ssn);
     if(ssn >= 2)
     {
         //两段睡眠以上
@@ -282,6 +672,8 @@ static void GetDaySlpSummary(void)
             awake_inv[inv_idx].stage = slp_awake;
             awake_inv[inv_idx].start_ts = pslp_ctx[cur_idx][sec_num-1].end_ts;//间隔中间开始：上一段的结束 下一段的开始
             awake_inv[inv_idx].end_ts = pslp_ctx[next_idx][0].start_ts;
+            printf("___%d  awake stage = %d, start_ts = %d, end_ts = %d\n", inv_idx, awake_inv[inv_idx].stage, \
+                awake_inv[inv_idx].start_ts, awake_inv[inv_idx].end_ts);
             inv_idx++;
             if(inv_idx >= ssn-1) 
                 break;
@@ -316,12 +708,18 @@ static void GetDaySlpSummary(void)
         }
     }
 
+    for(u8 i = 0; i < idx; i++)
+    {
+        printf("sleep %d: stage = %d, start_ts = %d, end_ts = %d\n", i, \
+            w_sleep.ctx[i].stage, w_sleep.ctx[i].start_ts, w_sleep.ctx[i].end_ts);
+    }
+
 __ctx_end:
     /* 开始时间为第一段start_ts */
     u32 start_ts = w_sleep.ctx[0].start_ts;
     /* 结束时间为最后一段的end_ts */
     u8 lidx;
-    if(idx > 0) lidx -= 1;
+    if(idx > 0) lidx = idx-1;
     else lidx = 0;
     u32 end_ts = w_sleep.ctx[lidx].end_ts;
 
@@ -332,16 +730,19 @@ __ctx_end:
     int msg[2];
     msg[0] = ui_msg_nor_sleep_write;
     post_ui_msg(msg, 1);
+    printf("w_sleep start_ts = %d, end_ts = %d\n", start_ts, end_ts);
 
     /* 用户展示数据 */
     __this_module->valid = true;
     __this_module->slp_start_ts = start_ts;
     __this_module->slp_end_ts = end_ts;
     __this_module->slp_dur = (end_ts - start_ts)/60;
+    printf("__this_module slp_dur = %d\n", __this_module->slp_dur);
     for(u8 i = 0; i < idx; i++)
     {
         u8 stage = w_sleep.ctx[i].stage;
         u32 dur = w_sleep.ctx[i].end_ts - w_sleep.ctx[i].start_ts;
+        printf("__this_module %d:dur = %d\n", i, dur);
         if(stage == slp_awake)
             __this_module->wake_dur += dur;
         else if(stage == slp_rem)
@@ -351,17 +752,21 @@ __ctx_end:
         else if(stage == slp_deep)
             __this_module->d_slp_dur += dur;
     }
+    
     /*单位分钟*/
     __this_module->wake_dur /= 60;
     __this_module->r_slp_dur /= 60;
     __this_module->l_slp_dur /= 60;
     __this_module->d_slp_dur /= 60;
+    printf("__this_module wake_dur = %d, r_slp_dur = %d, l_slp_dur = %d, d_slp_dur = %d\n", __this_module->wake_dur, \
+        __this_module->r_slp_dur, __this_module->l_slp_dur, __this_module->d_slp_dur);
     SlpDataVmWrite();
 
     ClearSlpSec();
-
+#endif
     return;
 }
+#endif
 
 void VmFlashSleepCtxWrite(void)
 {
@@ -377,8 +782,10 @@ void VmFlashSleepCtxWrite(void)
 void SleepPpgSensorOnOff(struct sys_time *ptime, s8 onoff)
 {
     /* 没有监测到入睡，ppg不做处理 */
-    bool fall_asleep = GetFallAsleepFlag();
-    if(fall_asleep == false) return;
+    // bool fall_asleep = GetFallAsleepFlag();
+    // if(fall_asleep == false) return;
+
+    //printf("______________________onoff = %d\n", onoff);
 
     /* 入睡阶段，心率由睡眠算法去接管 */
     if(onoff == 1)
@@ -398,18 +805,22 @@ void SleepPpgSensorOnOff(struct sys_time *ptime, s8 onoff)
         }
             
         /* 启动睡眠心率 */
-        EnablePpgModule(PpgWorkHr, PpgModeAuto);
+        SlpHrRawDataInit();
         SetSlpPpgEnState(1);
-
-        printf("sleep ppg enable\n");
+        EnablePpgModule(PpgWorkHr, PpgModeAuto);
+        printf("------------------------------------------------>sleep ppg enable\n"); 
     }else
     {
-        /* 看当前ppg工作类型 */
-        if(GetPpgWorkType() == PpgWorkHr)
+        /* 看当前ppg工作类型 */  
+        u8 slp_ppg_en = GetSlpPpgEnState();
+        if(slp_ppg_en == 1)
         {
+            /* 关闭睡眠心率 */
             DisablePpgModule();
             SetSlpPpgEnState(0);
-        }     
+            SlpHrRawDataInit();
+            printf("------------------------------------------------>sleep ppg disable\n"); 
+        }
     }
 
     return;
@@ -421,24 +832,47 @@ static
 void SleepStatusOutHandle(struct sys_time *ptime, u8 status)
 {
     //printf("status = 0x%x\n", status);
+#if 0//Sleep_Debug
+    static u8 slp_sec = 0;
+#endif
 
     if(status & 0x02) 
     {
         /* 监测入睡成功 */
         SetFallAsleepFlag(true);
+
+        printf("______________________________________fall asleep");
     }else if(status & 0x04)
     {
+        printf("______________________________________awake status = 0x%x", status);
+
         /* 监测出睡成功 */
         SetFallAsleepFlag(false);
 
+#if !Sleep_Debug
+        u8 slp_ppg_en = GetSlpPpgEnState();
+        if(slp_ppg_en == 1)
+        {
+            DisablePpgModule();
+            SetSlpPpgEnState(0);
+        }
+#endif
+
         if(status & 0x08)
             GetSecSlpSummary(&slp_in, &slp_out);
-        
+
+#if 0//Sleep_Debug 
+        slp_sec += 1;
+        if(slp_sec % 2 == 1)
+            return;
+#else
         /* 出睡先判断当前时间，如果说还在监测时间范围内，继续开始下一段监测。如果不在，认为整段睡眠结束 */
         u8 hour = ptime->hour;
         if(hour >= SlpStartH || hour < SlpEndH)
             return;
+#endif
 
+        printf("______________________________________sleep end status = 0x%x", status);
         /* 结束整段睡眠，统计一天的数据 */
         SetSleepEnState(false);
         SetSleepAutoDetEnFlag(0);
@@ -454,19 +888,22 @@ void ManualEndSleepHandle(void)
     bool slp_en = GetSleepEnState();
     if(slp_en == false) return;
 
-    bool fall_alseep = GetFallAsleepFlag();
-    if(fall_alseep == true)
+    u8 slp_ppg_en = GetSlpPpgEnState();
+    if(slp_ppg_en == 1)
     {
-        struct SleepOutput so;
-        endSleepPeriod(0, &so);
-        if(so.sleepPeriodStatusOut & 0x08) 
-            GetSecSlpSummary(&slp_in, &slp_out);
+        DisablePpgModule();
+        SetSlpPpgEnState(0);
     }
 
-    SetSleepEnState(false);
+    struct SleepOutput so;
+    endSleepPeriod(0, &so);
+    if(so.sleepPeriodStatusOut & 0x08) 
+        GetSecSlpSummary(&slp_in, &slp_out);
+
     SetFallAsleepFlag(false);
     SetSleepAutoDetEnFlag(0);
     GetDaySlpSummary();
+    SetSleepEnState(false);
 
     return;
 }
@@ -484,10 +921,15 @@ void SleepUtcMinProcess(struct sys_time *ptime)
         u8 charge_state = GetChargeState();
         if(charge_state == 1) return;
 
+        /* 防止上电进入睡眠 */
+        if(ptime->year <= Sys_Def_Year) 
+            return;
+
         /* 20:00 ~ 8:00 */
-        bool slp_en = GetSleepEnState();
+        bool slp_en = GetSleepEnState(); 
         if(slp_en == true) return;
 
+        SlpSecInit();
         SlpDataVmReset();
 
         /* 时间点刻印在20点 */
@@ -503,7 +945,7 @@ void SleepUtcMinProcess(struct sys_time *ptime)
         SetSleepEnState(true);
         SetFallAsleepFlag(false);
         SetSleepAutoDetEnFlag(1);
-        printf("---------->sleep start\n");
+        printf("------------------------------------------------->sleep start\n");
     }else
     {
         /* 早上8点后，监测到睡眠清醒，认为结束，停止整个睡眠段 */
@@ -512,10 +954,11 @@ void SleepUtcMinProcess(struct sys_time *ptime)
 
         bool slp_en = GetSleepEnState();
         if(slp_en == false) return;
-        SetSleepEnState(false);
 
         SetSleepAutoDetEnFlag(0);
         GetDaySlpSummary();
+        SetSleepEnState(false);
+        printf("------------------------------------------------->sleep end\n");
     }
 
     return;
@@ -545,9 +988,7 @@ void SlpDataVmWrite(void)
 void SlpDataVmReset(void)
 {
     memcpy(__this_module, &init, __this_module_size);
-
     __this_module->vm_mask = VM_MASK;
-
     SlpDataVmWrite();
 
     return;

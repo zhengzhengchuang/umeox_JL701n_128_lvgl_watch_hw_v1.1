@@ -1,5 +1,5 @@
-﻿#ifndef __FACTORY_H__
-#define __FACTORY_H__
+﻿#ifndef __GM_TEST_H__
+#define __GM_TEST_H__
 
 #ifdef __cplusplus
 extern "C" {

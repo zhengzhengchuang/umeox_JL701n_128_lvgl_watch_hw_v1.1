@@ -254,11 +254,11 @@ void ui_menu_jump_handle(ui_act_id_t act_id)
         return;
     }
 
-    bool disable_te = menu_load_info->disable_te;
-    if(disable_te == true)
-        SetUsrWaitTe(0);
-    else
-        SetUsrWaitTe(1);
+    // bool disable_te = menu_load_info->disable_te;
+    // if(disable_te == true)
+    //     SetUsrWaitTe(0);
+    // else
+    //     SetUsrWaitTe(1);
    
     ui_menu_container_create();
 

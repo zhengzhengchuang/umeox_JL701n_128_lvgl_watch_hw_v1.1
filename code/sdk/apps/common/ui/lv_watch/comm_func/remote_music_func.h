@@ -10,7 +10,7 @@ extern "C" {
 #define Rmusic_Min_Vol (0)
 #define Rmusic_Max_Vol (16)
 
-#define Rmusic_Title_Len (60)
+#define Rmusic_Title_Len (120)
 
 enum
 {
@@ -39,10 +39,13 @@ typedef struct
 }RmusicInfoPara_t;
 extern RmusicInfoPara_t Rmusic_Info;
 
-//bool GetRmusicUpdateState(void);
-
 void RmusicInfoParaRead(void);
+void DevReqOpAmsHandle(u8 cmd);
 void DevReqOpRmusicHandle(Rmusic_cmd_t OpCmd, u8 *para);
+
+void SetAmsMusicPlayState(char state);
+void SetAmsMusicTitle(u8 *p_buf, u16 len);
+void SetAmsMusicVolume(char *pstr, u16 len);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

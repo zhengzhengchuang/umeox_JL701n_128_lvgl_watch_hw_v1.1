@@ -14,6 +14,7 @@ void common_menu_lock_timer_add(void);
 void common_menu_lock_timer_del(void);
 
 void common_offscreen_handle(void);
+void common_brightscreen_handle(void);
 void common_offscreen_msg_handle(void);
 void common_offscreen_timer_create(void);
 void common_offscreen_timer_restart(void);

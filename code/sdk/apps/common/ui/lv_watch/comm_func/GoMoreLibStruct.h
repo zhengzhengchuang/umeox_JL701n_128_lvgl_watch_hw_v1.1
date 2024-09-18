@@ -240,6 +240,7 @@ typedef struct IndexIO {
     // float* biaQ;
     // int8_t* biaFlag;
     // uint8_t biaLength;
+    uint8_t wristOff;
 
     // Output
     // float hrOut;
@@ -350,6 +351,8 @@ typedef struct IndexIO {
     int8_t chronotypeIdealbedOut;
     uint8_t chronotypeStatusOut;
     uint8_t chronotypeNdayOut;
+    uint32_t chronotypePeriodStartTSOut;
+    uint32_t chronotypePeriodEndTSOut;
 
     // Ppi from PPG-HR
     // uint16_t ppiPpgOut[40];
@@ -675,6 +678,8 @@ typedef struct ChronotypeOutputManualEndSleep {
     int8_t manualEndSleepChronotypeIdealbedOut;
     uint8_t manualEndSleepChronotypeStatusOut;
     uint8_t manualEndSleepChronotypeNdayOut;
+    uint32_t manualEndSleepChronotypePeriodStartTSOut;
+    uint32_t manualEndSleepChronotypePeriodEndTSOut;
 } ChronotypeOutputManualEndSleep;
 
 // typedef struct OsaOutputManualEndSleep {

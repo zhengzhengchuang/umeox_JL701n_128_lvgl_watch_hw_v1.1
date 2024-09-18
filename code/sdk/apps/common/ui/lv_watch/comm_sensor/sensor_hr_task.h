@@ -6,11 +6,8 @@ extern "C" {
 #endif
 
 #include "../include/ui_menu.h"
-#include "../../../device/hr_sensor/gh3018/Drv_Code/inc/gh30x_example_common.h"
 
 #define Ppg_Task_Name "ppg_task"
-
-//#define Hr_Data_Filter 1
 
 #define HrGs_Fifo_WM (Qmi8658_Fifo_WM)
 
@@ -32,9 +29,11 @@ typedef u8 PpgWorkMode_t;
 
 enum
 {
-    PpgMsgProcess,
     PpgMsgEnable,
     PpgMsgDisable,
+
+    PpgMsgAgcTimeout,
+    PpgMsgPpgTimeout,
 };
 
 void PpgTaskCreate(void);
@@ -56,13 +55,16 @@ void SetPpgWorkType(u8 work);
 bool GetPpgEnableFlag(void);
 void SetPpgEnableFlag(bool en);
 
+/* PPG未佩戴计数 */
+u8 GetPpgUnwearCnt(void);
+void SetPpgUnwearCnt(u8 cnt);
+
 /* PPG佩戴状态 */
 bool GetPpgWearStatus(void);
 void SetPpgWearStatus(bool wear);
 
 void HrGsDataFifoWrite(u8 *w_buf, u32 w_len);
-void HrGsDataFifoRead(ST_GS_DATA_TYPE *gs_data, u16 *gs_len);
-
+u32 HrGsDataFifoRead(s16 *acc_x, s16 *acc_y, s16 *acc_z);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

@@ -43,7 +43,7 @@ enum
     lang_txtid_screen_sleep, //屏幕休眠
     lang_txtid_distance, //距离
     lang_txtid_temperature, //温度
-    lang_txtid_kilometer, //公里
+    lang_txtid_km, //公里
     lang_txtid_mile, //英里
     lang_txtid_unit_C, //℃
     lang_txtid_unit_F, //℉
@@ -196,6 +196,8 @@ enum
     lang_txtid_upgrading,//升级中
     lang_txtid_upgrade_succ,//升级成功
     lang_txtid_upgrade_fail,//升级失败
+    lang_txtid_steps,//步
+    lang_txtid_kcal,//千卡
 
     lang_txtid_max,
 };

@@ -91,7 +91,7 @@ float DistanceCalc(float steps)
     else
         steplen = height*(0.4f)/100.0f;
 
-    distance = steplen*steps;//
+    distance = steplen*steps;
 
     return distance;
 }
@@ -215,6 +215,7 @@ void WPedoParaInit(void)
     w_pedo.CurIdx = (time.hour*60 + time.min)/Pedo_Inv_Dur;
     time.hour = 0; time.min = 0; time.sec = 0;
     w_pedo.timestamp = UtcTimeToSec(&time);
+    printf("%s:%d\n", __func__, w_pedo.CurIdx);
 
     return;
 }

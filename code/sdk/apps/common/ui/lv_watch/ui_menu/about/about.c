@@ -17,6 +17,24 @@ static void scroll_cb(lv_event_t *e)
     return;
 }
 
+static void long_press_cb(lv_event_t *e)
+{
+    printf("___________long_press_cb\n");
+#if GM_DATA_DEBUG
+    ui_menu_jump(ui_act_id_gm_test);
+#endif
+
+#if GoData_Ble
+    SetGoBleFlag(1);
+#endif
+
+#if FACTORY_TEST_EN
+    ui_menu_jump(ui_act_id_lcd_factory);
+#endif
+
+    return;
+}
+
 static void about_container_create(lv_obj_t *obj)
 {
     widget_obj_para.obj_parent = obj;
@@ -34,6 +52,7 @@ static void about_container_create(lv_obj_t *obj)
     about_container = common_widget_obj_create(&widget_obj_para);
     lv_obj_set_style_pad_bottom(about_container, 25, LV_PART_MAIN);
     lv_obj_add_event_cb(about_container, scroll_cb, LV_EVENT_SCROLL, NULL);
+    lv_obj_add_event_cb(about_container, long_press_cb, LV_EVENT_LONG_PRESSED, NULL);
 
     return;
 }
@@ -107,7 +126,7 @@ static void about_ble_mac_elem_create(void)
     lv_obj_t *ble_mac_container = common_widget_img_create(&widget_img_para, NULL);
     lv_obj_align(ble_mac_container, LV_ALIGN_TOP_MID, 0, 272);
 
-    widget_label_para.label_w = 260;
+    widget_label_para.label_w = 280;
     widget_label_para.label_h = Label_Line_Height;
     widget_label_para.long_mode = LV_LABEL_LONG_SCROLL;
     widget_label_para.text_align = LV_TEXT_ALIGN_CENTER;
@@ -174,7 +193,7 @@ static void about_version_elem_create(void)
     lv_obj_t *version_label = common_widget_label_create(&widget_label_para);
     lv_obj_align(version_label, LV_ALIGN_TOP_MID, 0, 6);
 
-    char *version_str = Version_Release_Str;
+    char *version_str = Fw_Version_Release;
     widget_label_para.label_text_color = lv_color_hex(0xffffff);
     widget_label_para.label_text = version_str;
     lv_obj_t *version_str_label = common_widget_label_create(&widget_label_para);

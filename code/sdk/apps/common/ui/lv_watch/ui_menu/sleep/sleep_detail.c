@@ -2,7 +2,7 @@
 
 static bool slp_valid;
 
-static const s16 ec_sy = 20;
+static const s16 ec_sy = 10;
 static const u16 ec_h = 102;
 static lv_obj_t *list_ctx_container;
 
@@ -29,7 +29,6 @@ static void list_ctx_container_create(lv_obj_t *obj)
  
     return;
 }
-
 
 static void elem_ctx_create(menu_align_t menu_align)
 {
@@ -155,13 +154,25 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    ui_act_id_t up_act_id = ui_act_id_sleep_main;
-    if(!lang_txt_is_arabic())
+    ui_mode_t ui_mode = p_ui_info_cache->ui_mode;
+    if(ui_mode == ui_mode_watchface)
+    {
+        ui_act_id_t left_act_id = ui_act_id_weather_data;
+        ui_act_id_t right_act_id = ui_act_id_azkar_list;
+        ui_act_id_t up_act_id = ui_act_id_sleep_main;
         tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
-            ui_act_id_null, ui_act_id_null, ui_act_id_sleep_detail);
-    else
-        tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
-            ui_act_id_null, ui_act_id_null, ui_act_id_sleep_detail);
+            left_act_id, right_act_id, ui_act_id_sleep_detail);
+    }else
+    {
+        ui_act_id_t prev_act_id = ui_act_id_menu;
+        ui_act_id_t up_act_id = ui_act_id_sleep_main;
+        if(!lang_txt_is_arabic())
+            tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
+                prev_act_id, ui_act_id_null, ui_act_id_sleep_detail);
+        else
+            tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
+                ui_act_id_null, prev_act_id, ui_act_id_sleep_detail);
+    }
 
     return;
 }
@@ -189,8 +200,7 @@ static void menu_display_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    menu_align_t menu_align = \
-        menu_align_left;
+    menu_align_t menu_align = menu_align_left;
     if(lang_txt_is_arabic())
         menu_align = menu_align_right;
 

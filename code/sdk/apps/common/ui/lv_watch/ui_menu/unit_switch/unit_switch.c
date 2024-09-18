@@ -3,12 +3,12 @@
 #if 0
 static const uint8_t unit_distance_idx[\
     Unit_Distance_Sel_Num] = {
-    unit_distance_kilometre, unit_distance_mile,
+    unit_distance_km, unit_distance_mile,
 };
 
 static const uint16_t unit_distance_txtid[\
     Unit_Distance_Sel_Num] = {
-    lang_txtid_kilometer, lang_txtid_mile,
+    lang_txtid_km, lang_txtid_mile,
 };
 
 static const uint8_t unit_temperature_idx[\
@@ -364,7 +364,7 @@ static lv_obj_t *list_ctx_container;
 
 static const uint8_t unit_0_idx[\
     unit_distance_num] = {
-    unit_distance_kilometre, unit_distance_mile,
+    unit_distance_km, unit_distance_mile,
 };
 static const uint8_t unit_1_idx[\
     unit_temperature_num] = {
@@ -485,7 +485,7 @@ static void elem_ctx_unit_0_create(menu_align_t menu_align)
         false;
     widget_label_para.user_text_font = NULL;
 
-    for(uint8_t idx = unit_distance_kilometre; idx < \
+    for(uint8_t idx = unit_distance_km; idx < \
         unit_distance_num; idx++)
     {
         if(idx == unit_dis)
@@ -503,7 +503,7 @@ static void elem_ctx_unit_0_create(menu_align_t menu_align)
         widget_label_para.label_parent = \
             sel_container;
         widget_label_para.label_text = \
-            get_lang_txt_with_id(lang_txtid_kilometer + idx);
+            get_lang_txt_with_id(lang_txtid_km + idx);
         lv_obj_t *elem_ctx_label = \
             common_widget_label_create(&widget_label_para);
         lv_obj_center(elem_ctx_label);

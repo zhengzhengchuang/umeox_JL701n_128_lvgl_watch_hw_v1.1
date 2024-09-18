@@ -86,8 +86,7 @@ static void MessageNotifyIsOnHandle(void)
 void MsgNotifyProcess(void)
 {
     bool BondFlag = GetDevBondFlag();
-    if(BondFlag == false)
-        return;
+    if(BondFlag == false) return;
 
     vm_message_ctx_t *w_ctx = &w_message;
 

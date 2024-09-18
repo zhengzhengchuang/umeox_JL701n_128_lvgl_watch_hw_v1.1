@@ -29,7 +29,7 @@ void common_data_refresh(void)
     common_step_widget_refresh();
     common_pace_widget_refresh();
     common_calorie_widget_refresh();
-    //common_weather_widget_refresh();
+        //common_weather_widget_refresh();
     common_distance_widget_refresh();
     
     return;

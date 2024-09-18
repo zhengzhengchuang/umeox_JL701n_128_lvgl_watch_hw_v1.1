@@ -236,14 +236,24 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    ui_act_id_t prev_act_id = ui_act_id_menu;
-    if(!lang_txt_is_arabic())
+    ui_mode_t ui_mode = p_ui_info_cache->ui_mode;
+    if(ui_mode == ui_mode_watchface)
+    {
+        ui_act_id_t left_act_id = ui_act_id_sleep_main;
+        ui_act_id_t right_act_id = ui_act_id_prayer_time_main;
         tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
-            prev_act_id, ui_act_id_null, ui_act_id_azkar_list);
-    else
-        tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
-            ui_act_id_null, prev_act_id, ui_act_id_azkar_list);
-
+            left_act_id, right_act_id, ui_act_id_azkar_list);
+    }else
+    {
+        ui_act_id_t prev_act_id = ui_act_id_menu;
+        if(!lang_txt_is_arabic())
+            tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
+                prev_act_id, ui_act_id_null, ui_act_id_azkar_list);
+        else
+            tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
+                ui_act_id_null, prev_act_id, ui_act_id_azkar_list);
+    }
+    
     return;
 }
 

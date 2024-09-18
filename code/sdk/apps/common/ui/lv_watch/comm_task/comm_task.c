@@ -93,7 +93,8 @@ static void TimerSecondHandle(void *priv)
 {
     int CommMsg[2];
     CommMsg[0] = comm_msg_timersec_handle;
-    PostCommTaskMsg(CommMsg, 1);
+    CommMsg[1] = (int)priv;
+    PostCommTaskMsg(CommMsg, 2);
 
     return;
 }
@@ -101,21 +102,32 @@ static void TimerSecondHandle(void *priv)
 static u8 SecCnt = 0;
 static void TimerCb(void *priv)
 {  
+    GetUtcTime(&utc_time);
+
     SecCnt += 1;
     SecCnt %= 2;
     if(SecCnt == 0)
-        TimerSecondHandle(NULL);
+        TimerSecondHandle(&utc_time);
 
-    GetUtcTime(&utc_time);
     UtcDayHandle(&utc_time);
     UtcMinuteHandle(&utc_time);
     UtcSecondHandle(&utc_time);
 
-    // u8 bt_status = get_bt_connect_status();
+    // u8 bt_status = GetDevBleBtConnectStatus();
     // printf("bt_status = %d\n", bt_status);
 
     return;
 }
+
+#if 0//Sleep_Debug
+static void sleep_test_timer(void *priv)
+{
+    int CommMsg[2];
+    CommMsg[0] = comm_msg_sleep_test;
+    PostCommTaskMsg(CommMsg, 1);
+    return;
+}
+#endif
 
 static void CommTaskHandle(void *p)
 {
@@ -126,10 +138,13 @@ static void CommTaskHandle(void *p)
     if(utc_timer == 0)
         utc_timer = sys_timer_add(NULL, TimerCb, 500);
 
+#if 0//Sleep_Debug
+    sys_timer_add(NULL, sleep_test_timer, 50);
+#endif
+
     while(1)
     {
-        ret = os_taskq_pend(NULL, msg, ARRAY_SIZE(msg)); 
-
+        ret = os_taskq_pend(NULL, msg, ARRAY_SIZE(msg));
         if(ret == OS_TASKQ)
             CommTaskMsgHandle(msg, ARRAY_SIZE(msg));
     }
@@ -165,7 +180,7 @@ void CommTaskMsgHandle(int *msg, u8 len)
             break;
 
         case comm_msg_timersec_handle:
-            timer_sec_task_handle();
+            timer_sec_task_handle(msg[1]);
             break;
 
         case comm_msg_countdown_timeout:
@@ -191,6 +206,13 @@ void CommTaskMsgHandle(int *msg, u8 len)
         case comm_msg_power_update:
             BatPowerUpdateHandle();
             break;
+
+#if 0//Sleep_Debug
+        case comm_msg_sleep_test:
+            extern void sleep_tets(void);
+            sleep_tets();
+            break;
+#endif
 
         default:
             break;

@@ -4,7 +4,7 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    DisableGmModule();
+    //DisableGmModule();
 
     ui_act_id_t prev_act_id = ui_act_id_menu;
     if(!lang_txt_is_arabic())
@@ -26,9 +26,9 @@ static void menu_refresh_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    if(ll_info.position_valid)
+    if(ll_info.position_valid == true)
         ui_menu_jump(ui_act_id_kaaba_qibla);
-
+    
     return;
 }
 

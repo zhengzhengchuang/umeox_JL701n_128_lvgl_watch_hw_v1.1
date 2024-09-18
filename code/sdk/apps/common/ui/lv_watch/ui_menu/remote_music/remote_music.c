@@ -4,7 +4,9 @@
 
 static bool ble_connected;
 
-static uint8_t last_remote_music_vol;
+static u8 remote_system;
+
+static u8 last_remote_music_vol;
 static Rmusic_state_t last_music_state;
 static char last_music_title[Rmusic_Title_Len];
 
@@ -19,8 +21,17 @@ static void prev_cb(lv_event_t *e)
 {
     if(!e) return;
 
-    DevReqOpRmusicHandle(Cmd_Set_Rmusic_Prev, NULL);
+    if(remote_system == REMOTE_TYPE_UNKNOWN)
+        return;
 
+    if(remote_system == REMOTE_TYPE_IOS)
+    {
+        DevReqOpAmsHandle(AMS_RemoteCommandIDPreviousTrack);
+    }else
+    {
+        DevReqOpRmusicHandle(Cmd_Set_Rmusic_Prev, NULL);
+    }
+    
     return;
 }
 
@@ -28,14 +39,26 @@ static void next_cb(lv_event_t *e)
 {
     if(!e) return;
 
-    DevReqOpRmusicHandle(Cmd_Set_Rmusic_Next, NULL);
+    if(remote_system == REMOTE_TYPE_UNKNOWN)
+        return;
 
+    if(remote_system == REMOTE_TYPE_IOS)
+    {
+        DevReqOpAmsHandle(AMS_RemoteCommandIDNextTrack);
+    }else
+    {
+        DevReqOpRmusicHandle(Cmd_Set_Rmusic_Next, NULL);
+    }
+    
     return;
 }
 
 static void state_cb(lv_event_t *e)
 {
     if(!e) return;
+
+    if(remote_system == REMOTE_TYPE_UNKNOWN)
+        return;
 
     lv_obj_t *obj = lv_event_get_target(e);
 
@@ -50,7 +73,13 @@ static void state_cb(lv_event_t *e)
     uint32_t file_img_dat = remote_music_02_index + *music_state;
     common_widget_img_replace_src(obj, file_img_dat, music_state_icon_dsc);
 
-    DevReqOpRmusicHandle(Cmd_Set_Rmusic_State, NULL);
+    if(remote_system == REMOTE_TYPE_IOS)
+    {
+        DevReqOpAmsHandle(AMS_RemoteCommandIDTogglePlayPause);
+    }else
+    {
+        DevReqOpRmusicHandle(Cmd_Set_Rmusic_State, NULL);
+    }
 
     return;
 }
@@ -59,15 +88,30 @@ static void volume_slider_cb(lv_event_t *e)
 {
     if(!e) return;
 
+    if(remote_system == REMOTE_TYPE_UNKNOWN)
+        return;
+
     lv_obj_t *obj = lv_event_get_target(e);
 
-    uint8_t *volume = &(Rmusic_Info.volume);
+    u8 *volume = &(Rmusic_Info.volume);
     *volume = lv_slider_get_value(obj)/Slider_Range_Inc;
 
     if(*volume != last_remote_music_vol)
     {
-        last_remote_music_vol = *volume;
-        DevReqOpRmusicHandle(Cmd_Set_Rmusic_Volume, volume);
+        if(remote_system == REMOTE_TYPE_IOS)
+        {
+            if(*volume > last_remote_music_vol)
+            {
+                DevReqOpAmsHandle(AMS_RemoteCommandIDVolumeUp);
+            }else
+            {
+                DevReqOpAmsHandle(AMS_RemoteCommandIDVolumeDown);
+            }
+        }else
+        {
+            DevReqOpRmusicHandle(Cmd_Set_Rmusic_Volume, volume);
+        }
+        last_remote_music_vol = *volume;  
     }
 
     return;
@@ -113,9 +157,9 @@ static void disc_menu_create(lv_obj_t *obj)
 
 static void menu_create(lv_obj_t *obj)
 {
-    uint8_t volume = Rmusic_Info.volume;
-    uint8_t min_volume =  Rmusic_Min_Vol;
-    uint8_t max_volume =  Rmusic_Max_Vol;
+    u8 volume = Rmusic_Info.volume;
+    u8 min_volume =  Rmusic_Min_Vol;
+    u8 max_volume =  Rmusic_Max_Vol;
   
     last_remote_music_vol = volume;
 
@@ -181,7 +225,6 @@ static void menu_create(lv_obj_t *obj)
     remote_music_state_icon = common_widget_img_create(&widget_img_para, &music_state_icon_dsc);
     lv_obj_set_ext_click_area(remote_music_state_icon, 10);
 
-
     memcpy(last_music_title, Rmusic_Info.title, Rmusic_Title_Len);
 
     widget_label_para.label_x = 42;
@@ -203,8 +246,6 @@ static void menu_create(lv_obj_t *obj)
 static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
-
-    DevReqOpRmusicHandle(Cmd_Get_Rmusic_Para, NULL);
 
     ui_act_id_t act_id = ui_act_id_tool_box;
     if(!lang_txt_is_arabic())
@@ -228,14 +269,13 @@ static void menu_refresh_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    uint8_t ble_bt_connect = GetDevBleBtConnectStatus();
+    u8 ble_bt_connect = GetDevBleBtConnectStatus();
     if(ble_bt_connect == 0 || ble_bt_connect == 2)
     {
         if(ble_connected == true)
         {
             ui_act_id_t act_id = p_ui_info_cache->cur_act_id;
             ui_menu_jump(act_id);
-
             return;
         }
     }else
@@ -244,7 +284,6 @@ static void menu_refresh_cb(lv_obj_t *obj)
         {
             ui_act_id_t act_id = p_ui_info_cache->cur_act_id;
             ui_menu_jump(act_id);
-
             return;
         }
     }
@@ -254,7 +293,7 @@ static void menu_refresh_cb(lv_obj_t *obj)
     if(slider_dragged == true)
         goto __refr_music;
 
-    uint8_t volume = Rmusic_Info.volume;
+    u8 volume = Rmusic_Info.volume;
     if(volume == last_remote_music_vol)
         goto __refr_music;
 
@@ -288,10 +327,14 @@ static void menu_display_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
+    remote_system = GetRemoteSystemType();
+    if(remote_system == REMOTE_TYPE_ANDROID)
+        DevReqOpRmusicHandle(Cmd_Get_Rmusic_Para, NULL);
+
     menu_create(obj);
     ble_connected = true;
 
-    uint8_t ble_bt_connect = GetDevBleBtConnectStatus();
+    u8 ble_bt_connect = GetDevBleBtConnectStatus();
     if(ble_bt_connect == 0 || ble_bt_connect == 2)
     {
         ble_connected = false;

@@ -7,8 +7,7 @@ extern "C" {
 
 #include "../include/ui_menu.h"
 
-void timer_sec_task_handle(void);
-
+void timer_sec_task_handle(int priv);
 void utc_day_task_handle(int priv);
 void utc_minute_task_handle(int priv);
 void utc_second_task_handle(int priv);

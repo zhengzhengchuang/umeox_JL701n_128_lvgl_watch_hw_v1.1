@@ -796,7 +796,7 @@ IMU_SENSOR_PLATFORM_DATA_END();
 /************************** rtc ****************************/
 #if TCFG_RTC_ENABLE
 const struct sys_time def_sys_time = {  //初始一下当前时间
-    .year = 2020,
+    .year = Sys_Def_Year,
     .month = 1,
     .day = 1,
     .hour = 0,
@@ -1149,6 +1149,9 @@ static void board_devices_init(void)
 
     sensor_iic_init();
 
+    // extern void hx3605_drive_init(void);
+    // hx3605_drive_init();
+
 #if (TCFG_HR_SENSOR_ENABLE||TCFG_SPO2_SENSOR_ENABLE)
     hr_sensor_init(&hrSensor_data);
 #endif
@@ -1163,9 +1166,6 @@ static void board_devices_init(void)
 
     extern int qmc6309_init(void);
     qmc6309_init();
-
-    extern int gh30x_module_init(void);
-    gh30x_module_init();
 
 #if TCFG_IMUSENSOR_ENABLE
     imu_sensor_init(imu_sensor_data,sizeof(imu_sensor_data));
@@ -1212,7 +1212,7 @@ void board_init()
     cfg_file_parse(0);
     /* devices_init(); */
 
-    BatEnableCtrl(1);
+    //BatEnableCtrl(1);
     ldo_power_ctrl(1);
 
 #if TCFG_PSRAM_DEV_ENABLE
@@ -1406,7 +1406,7 @@ void board_set_soft_poweroff(void)
 	sd_power_config(0);
 #endif
 
-    soff_gpio_protect(IO_PORTB_00);
+    //soff_gpio_protect(IO_PORTB_00);
     soff_gpio_protect(IO_PORTA_05);
     ldo_power_ctrl(0);
 

@@ -1,5 +1,7 @@
 #include "kaaba_qibla.h"
 
+static u8 DisableFlag;
+
 static bool kaaba_remind;
 static int16_t kaaba_azimuth;
 static lv_obj_t *kaaba_zoom;
@@ -12,7 +14,8 @@ static void menu_create_cb(lv_obj_t *obj)
     if(!obj) return;
 
     EnableGmModule();
-    kaaba_azimuth = GetKaabaQiblaAzimuth();
+    kaaba_azimuth = \
+        GetKaabaQiblaAzimuth();
 
     ui_act_id_t prev_act_id = ui_act_id_menu;
     if(!lang_txt_is_arabic())
@@ -27,7 +30,10 @@ static void menu_create_cb(lv_obj_t *obj)
 
 static void menu_destory_cb(lv_obj_t *obj)
 {
-    DisableGmModule();
+    bool is_offscr = GetIsEnterOffScreen();
+    if(is_offscr == true) DisableFlag = 0;
+
+    if(DisableFlag == 1) DisableGmModule();
 
     return;
 }
@@ -39,22 +45,24 @@ static void menu_refresh_cb(lv_obj_t *obj)
     bool cali_succ = GetGmCaliSucc();
     if(cali_succ == false)
     {
+        DisableFlag = 0;
         ui_menu_jump(ui_act_id_gm_cali);
         return;
     }
 
-    int16_t Yaw = GetGmYawAngle();
-    int16_t compass_rotate = (-1)*Yaw*10;
-    lv_img_set_angle(kaaba_compass, compass_rotate);
+    s16 Yaw = GetGmYawAngle();
+    s16 compass = (-1)*Yaw*10;
+    lv_img_set_angle(kaaba_compass, compass);
 
-    int16_t zoom_rotate = (Yaw - kaaba_azimuth)*10;
-    lv_img_set_angle(kaaba_zoom, zoom_rotate);
+    // int16_t zoom_rotate = (Yaw - kaaba_azimuth)*10;
+    // lv_img_set_angle(kaaba_zoom, zoom_rotate);
 
     char YawNumStr[10];
     memset(YawNumStr, 0, sizeof(YawNumStr));
     sprintf(YawNumStr, "%d°", Yaw);
     lv_label_set_text(kaaba_yaw_label, YawNumStr);
 
+#if 0
     int16_t min = kaaba_azimuth - 5;
     int16_t max = kaaba_azimuth + 5;
     min = min < 0?(360 + min):min;
@@ -86,6 +94,7 @@ static void menu_refresh_cb(lv_obj_t *obj)
             kaaba_remind = false;
         }
     }
+#endif
 
     return;
 }
@@ -94,6 +103,7 @@ static void menu_display_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
+    DisableFlag = 1;
     kaaba_remind = false;
 
     widget_img_para.img_parent = obj;
@@ -103,22 +113,22 @@ static void menu_display_cb(lv_obj_t *obj)
     lv_obj_t *kaaba_qibla_container = common_widget_img_create(&widget_img_para, NULL);
     lv_obj_align(kaaba_qibla_container, LV_ALIGN_CENTER, 0, 0);
 
-    int16_t Yaw = GetGmYawAngle();
-    int16_t compass_rotate = (-1)*Yaw*10;
+    s16 Yaw = GetGmYawAngle();
+    s16 compass = (-1)*Yaw*10;
     widget_img_para.img_parent = kaaba_qibla_container;
     widget_img_para.file_img_dat = kaaba_02_index;
     kaaba_compass = common_widget_img_create(&widget_img_para, NULL);
     lv_obj_center(kaaba_compass);
-    lv_img_set_angle(kaaba_compass, compass_rotate);
+    lv_img_set_angle(kaaba_compass, compass);
 
-    int16_t zoom_rotate = (Yaw - kaaba_azimuth)*10;
-    widget_img_para.file_img_dat = kaaba_03_index;
-    kaaba_zoom = common_widget_img_create(&widget_img_para, NULL);
-    lv_obj_align(kaaba_zoom, LV_ALIGN_TOP_MID, 0, 0);
-    lv_img_set_pivot(kaaba_zoom, 23, 168);
-    lv_img_set_angle(kaaba_zoom, zoom_rotate);
+    // int16_t zoom_rotate = (Yaw - kaaba_azimuth)*10;
+    // widget_img_para.file_img_dat = kaaba_03_index;
+    // kaaba_zoom = common_widget_img_create(&widget_img_para, NULL);
+    // lv_obj_align(kaaba_zoom, LV_ALIGN_TOP_MID, 0, 0);
+    // lv_img_set_pivot(kaaba_zoom, 23, 168);
+    // lv_img_set_angle(kaaba_zoom, zoom_rotate);
 
-    char YawNumStr[10];
+    char YawNumStr[8];
     memset(YawNumStr, 0, sizeof(YawNumStr));
     sprintf(YawNumStr, "%d°", Yaw);
     widget_label_para.label_w = 60;

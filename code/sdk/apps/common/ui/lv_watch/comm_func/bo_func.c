@@ -114,6 +114,7 @@ void WBoParaInit(void)
     w_bo.CurIdx = (time.hour*60 + time.min)/Bo_Inv_Dur;
     time.hour = 0; time.min = 0; time.sec = 0;
     w_bo.timestamp = UtcTimeToSec(&time);
+    printf("%s:CurIdx = %d\n", __func__, w_bo.CurIdx);
 
     return;
 }

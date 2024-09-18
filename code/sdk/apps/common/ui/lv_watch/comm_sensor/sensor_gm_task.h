@@ -13,6 +13,17 @@ extern "C" {
 
 #define GmGs_Fifo_WM (Qmi8658_Fifo_WM)
 
+#define GM_DATA_DEBUG 0
+#if GM_DATA_DEBUG
+#define GM_LEN (200)//30
+#define GM_CNT (30)
+extern float gm_data0[GM_LEN];
+extern float gm_data1[GM_LEN];
+extern float gm_data2[GM_LEN];
+#endif
+
+#define GM_DATA_BLE (0)
+
 enum
 {
     GmMsgProcess,
@@ -46,7 +57,7 @@ bool GetGmCaliSucc(void);
 void SetGmCaliSucc(bool f);
 
 void GmGsDataFifoWrite(u8 *w_buf, u32 w_len);
-u16 GmGsDataFifoRead(s16 *xdata, s16 *ydata, s16 *zdata, u16 max_len);
+u32 GmGsDataFifoRead(s16 *acc_x, s16 *acc_y, s16 *acc_z);
 
 void GmCaliInfoRead(void);
 void GmCaliInfoWrite(void);

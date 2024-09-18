@@ -505,7 +505,7 @@ int app_charge_event_handler(struct device_event *dev)
         //UI_WINDOW_PREEMPTION_POP(ID_WINDOW_IDLE);
         break;
     case CHARGE_EVENT_CHARGE_FULL:
-        charge_full_deal();
+        //charge_full_deal();
         break;
     case CHARGE_EVENT_LDO5V_KEEP:
         ldo5v_keep_deal();

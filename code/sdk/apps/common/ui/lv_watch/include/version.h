@@ -5,21 +5,18 @@
 extern "C" {
 #endif
 
+#define Num_3_Str(a,b,c) "V" #a "." #b "." #c
+#define _Version_Release_Str(a,b,c) Num_3_Str(a,b,c)
+
 /*********************************************************************************
-                                    版本号(Vx.x.x)                             
+                                    固件版本号(Vx.x.x)                             
 *********************************************************************************/
-#define Version_Internal    1 //内部版本
-#define Version_Release_0   0 //释放版本
-#define Version_Release_1   0 //释放版本
-
-#define Num_3_Str(a,b,c) \
-    "V" #a "." #b "." #c
-#define _Version_Release_Str(a,b,c) \
-    Num_3_Str(a,b,c)
-#define Version_Release_Str \
-    _Version_Release_Str(Version_Release_1, \
-        Version_Release_0, Version_Internal)
-
+#define Fw_Version_Maintenance    1//维护版本
+#define Fw_Version_Minor          0//ota版本
+#define Fw_Version_Major          0//大需求变化版本
+#define Fw_Version_Release _Version_Release_Str(Fw_Version_Major, \
+    Fw_Version_Minor, Fw_Version_Maintenance)
+    
 #ifdef __cplusplus
 }
 #endif

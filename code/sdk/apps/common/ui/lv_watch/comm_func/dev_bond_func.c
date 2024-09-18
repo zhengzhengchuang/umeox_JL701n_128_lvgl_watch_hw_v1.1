@@ -42,7 +42,8 @@ void FirstDevBondHandle(void)
     u8 charge_state = GetChargeState();
     if(charge_state == 1) return;
 
-    ui_act_id_t act_id = ui_act_id_watchface;
+    ui_act_id_t act_id = \
+        ui_act_id_watchface;
     ui_menu_jump(act_id);
  
     return;
@@ -52,6 +53,8 @@ void FirstDevBondHandle(void)
 void OriDevBondHandle(void)
 {
     printf("____old dev bond\n");
+
+    //SetDevBondFlag(1);
 
     return;
 }
@@ -108,7 +111,7 @@ void DevUnBondHandle(void)
     u8 charge_state = GetChargeState();
     if(charge_state == 1) return;
 
-    ui_act_id_t act_id = ui_act_id_dev_bond;
+    ui_act_id_t act_id = ui_act_id_bond_lang;
     ui_menu_jump(act_id);
 
     //断开蓝牙
@@ -132,8 +135,7 @@ bool BondCodeCompare(u8 *old_code, u8 *new_code, u8 len)
 
 void BondCodeInfoParaRead(void)
 {
-    int vm_op_len = \
-        sizeof(DevBondCodeInfo_t);
+    int vm_op_len = sizeof(DevBondCodeInfo_t);
 
     int ret = syscfg_read(CFG_DEV_BOND_CODE_INFO, \
         &BondCode_Info, vm_op_len);

@@ -344,7 +344,7 @@ int qmc6309_read_mag_xyz(float data[3])
 	data[1] = (float)((float)hw_d[1] / ((float)p_mag.ssvt/100.f));		// ut
 	data[2] = (float)((float)hw_d[2] / ((float)p_mag.ssvt/100.f));		// ut
 
-	qmc6309_axis_convert(data, 2);
+	qmc6309_axis_convert(data, 6);
 
 	if(p_mag.ctrl1.bit.mode == QMC6309_MODE_SINGLE)
 	{

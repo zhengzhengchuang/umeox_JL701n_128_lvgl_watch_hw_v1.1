@@ -166,6 +166,7 @@ int chsc6x_write_bytes_u16addr_sub(unsigned char id, unsigned short adr, unsigne
 
     int write_len = 0;
     write_len = iic_write_buf(tp_iic_hdl(), reg, 2);
+   //printf("write_len = %d\n", write_len);
     if(write_len != 2)
     {
         iic_stop(tp_iic_hdl());
@@ -173,8 +174,14 @@ int chsc6x_write_bytes_u16addr_sub(unsigned char id, unsigned short adr, unsigne
     }
     chsc6x_udelay(chsc6x_iic_delay);
 
-    ret = iic_write_buf(tp_iic_hdl(), txbuf, lenth);
-    chsc6x_udelay(chsc6x_iic_delay);
+    if(lenth > 0)
+    {
+        ret = iic_write_buf(tp_iic_hdl(), txbuf, lenth);
+        chsc6x_udelay(chsc6x_iic_delay);
+    }else
+    {
+        ret = 0;
+    }
     iic_stop(tp_iic_hdl());
     chsc6x_udelay(chsc6x_iic_delay);
 

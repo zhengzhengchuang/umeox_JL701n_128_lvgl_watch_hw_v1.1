@@ -1,19 +1,19 @@
 #include "../lv_watch.h"
 
 /* 电池容量 单位:mah*/
-#define Bat_Cap 390.0f
+#define Bat_Cap 500.0f
 
 /* 电池内阻 单位：欧姆 */
-#define Bat_R 0.35f
+#define Bat_R 0.18f
 
 /* 最大充电电流 单位：毫安 */
-#define Bat_Max_I 200.0f
+#define Bat_Max_I 250.0f
 
 /* 最小放电电流 单位：毫安 */
 #define Bat_Min_I -200.0f
 
 /* 充电系数 */
-#define Charge_Factor 0.6f
+#define Charge_Factor 0.30f
 
 
 #define Div_Points 20
@@ -109,26 +109,9 @@ __end:
 //user 控制电池使能管教 0:不使能 1:使能
 int BatEnableCtrl(u8 en)
 {
-#if 1
-    en = !en;
-    gpio_set_die(IO_PORTB_00, 1);
-    gpio_direction_output(IO_PORTB_00, en);
-
-    printf("%s:en = %d\n", __func__, en);
-#else
-    if(en) 
-    {
-        gpio_set_pull_up(IO_PORTB_00, 0);
-        gpio_set_pull_down(IO_PORTB_00, 0);
-        gpio_set_direction(IO_PORTB_00, 0);
-        gpio_set_output_value(IO_PORTB_00, 0);
-	}else 
-    {
-        gpio_set_pull_up(IO_PORTB_00, 0);
-        gpio_set_pull_down(IO_PORTB_00, 0);
-        gpio_set_direction(IO_PORTB_00, 1);
-	}
-#endif
+    gpio_set_pull_up(IO_PORTB_00, 0);
+    gpio_set_pull_down(IO_PORTB_00, 0);
+    gpio_set_direction(IO_PORTB_00, 1);
 
     return 0;
 }
@@ -276,7 +259,7 @@ void LPRemindProcess(struct sys_time *ptime)
 
     if(cur_power % 5 == 0)
     {
-        /*电量5, 10, 15提醒一次*/
+        /*电量5, 10提醒一次*/
         if(LPRemind == false)
         {
             LPRemind = true;

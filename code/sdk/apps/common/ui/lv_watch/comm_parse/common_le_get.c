@@ -14,8 +14,7 @@ u8 calc_crc(u8 *buf, u8 crc_idx)
     for(u8 i = 0; i < crc_idx; i++)
         verify_crc += buf[i];
 
-    u8 crc = \
-        (u8)(verify_crc&(0xff));
+    u8 crc = (u8)(verify_crc&(0xff));
 
     return crc;
 }
@@ -37,9 +36,9 @@ void RemoteGetDeviceInfo(u8 *buf, u8 len)
     nfy_buf[idx++] = cmd;
     nfy_buf[idx++] = Qwatch;
     nfy_buf[idx++] = Model_QW02;
-    nfy_buf[idx++] = Version_Release_1;
-    nfy_buf[idx++] = Version_Release_0;
-    nfy_buf[idx++] = Version_Internal;
+    nfy_buf[idx++] = Fw_Version_Major;
+    nfy_buf[idx++] = Fw_Version_Minor;
+    nfy_buf[idx++] = Fw_Version_Maintenance;
     nfy_buf[idx++] = dst_ble_mac[0];
     nfy_buf[idx++] = dst_ble_mac[1];
     nfy_buf[idx++] = dst_ble_mac[2];

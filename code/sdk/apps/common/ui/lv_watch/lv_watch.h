@@ -102,8 +102,13 @@ extern "C" {
 #include "./ui_menu/split_screen/split_screen.h"
 #include "../../../../include_lib/system/timer.h"
 #include "../../../../include_lib/system/sys_time.h"
+#include "../../../../include_lib/btstack/bluetooth.h"
+#include "../../../../include_lib/btstack/le/ble_api.h"
+#include "../../device/touch_panel/chsc6x/chsc6x_comp.h"
 #include "../../../../include_lib/system/device/ioctl_cmds.h"
 
+/* 系统默认年份 */
+#define Sys_Def_Year (2020)
 
 /**********时间滚轮共用**************/
 extern const char time_hour_str[];
@@ -172,6 +177,10 @@ void SetDevBondFlag(int f);
 u32 GetPedoDataSteps(void);
 u32 GetPedoDataKcal(void);
 u32 GetPedoDataDisM(void);
+
+/**********远程系统类型**********/
+u8 GetRemoteSystemType(void);
+void SetRemoteSystemType(u8 type);
 #ifdef __cplusplus
 }
 #endif

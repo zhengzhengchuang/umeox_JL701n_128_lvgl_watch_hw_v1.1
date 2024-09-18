@@ -64,12 +64,52 @@ void common_offscreen_handle(void)
     return;
 }
 
+void common_brightscreen_handle(void)
+{
+    bool BondFlag = GetDevBondFlag();
+    
+    ui_act_id_t act_id = ui_act_id_watchface;
+    ui_menu_load_info_t *menu_load_info = \
+        &p_ui_info_cache->exit_menu_load_info;
+    bool lock_flag = get_menu_timer_lock_flag();
+    if(menu_load_info->lock_flag == true)
+    {
+        act_id = menu_load_info->menu_id;
+    }else
+    {
+#if 0
+        if(menu_load_info->menu_id == ui_act_id_bond_lang && BondFlag == false)
+        {
+            act_id = menu_load_info->menu_id;
+        }else
+        {
+            if(lock_flag == true)
+            {
+                if(menu_load_info->menu_id != ui_act_id_null)
+                    act_id =  menu_load_info->menu_id;
+            }
+        }
+#else
+        if(lock_flag == true)
+        {
+            if(menu_load_info->menu_id != ui_act_id_null)
+                act_id =  menu_load_info->menu_id;
+        }
+#endif
+    }
+    ui_menu_jump(act_id);
+
+    return;
+}
+
 static void common_offscreen_timer_cb(void *priv)
 {
     if(cur_offscreen_time == Always_OnScreen)
         return;
-        
+
+#if !GM_DATA_BLE  
     common_offscreen_handle();
+#endif
 
     return;
 }

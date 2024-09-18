@@ -1,6 +1,7 @@
 #include "timer.h"
 #include "chsc6x_comp.h"
 #include "chsc6x_platform.h"
+#include "../../../ui/lv_watch/lv_watch.h"
 
 #if TCFG_TOUCH_PANEL_ENABLE
 
@@ -10,10 +11,34 @@ static const u8 iic_hdl = 0;
 
 static u16 touch_x = 0;
 static u16 touch_y = 0;
+static u8 touch_filter = 0;
 static bool touch_flag = false;
 static bool touch_down = false;
 static u16 released_timer_id = 0;
 static bool released_timer_create = false;
+
+static u16 db_timer;
+static void db_cb(void *priv)
+{
+    if(db_timer)
+        sys_timeout_del(db_timer);
+    db_timer = 0;
+
+    common_brightscreen_handle();
+    return;
+}
+static void dbcheck_handle(void)
+{
+    if(db_timer == 0)
+        db_timer = sys_timeout_add(NULL, db_cb, 50);
+    return;
+}
+
+static void palmcheck_handle(void)
+{
+    common_offscreen_handle();
+    return;
+}
 
 u8 tp_iic_hdl(void)
 {
@@ -46,7 +71,6 @@ void chsc6x_read_touch_info()
 {
     int ret;
     int rd_len = 0;
-    unsigned char point_num;
     unsigned char read_buf[6];
     struct ts_event events[CHSC6X_MAX_POINTS_NUM];
 
@@ -66,71 +90,88 @@ void chsc6x_read_touch_info()
     ret = chsc6x_i2c_read(CHSC6X_I2C_ID, read_buf, rd_len);
     if(rd_len == ret) 
     {
-        point_num = read_buf[0] & 0x03;
-
-        //printf("point_num = %d\n", point_num);
-    
-        if(1 == CHSC6X_MAX_POINTS_NUM) 
-        {               
-            events[0].x = (unsigned short)(((read_buf[0] & 0x40) >> 6) << 8) | (unsigned short)read_buf[1];
-            events[0].y = (unsigned short)(((read_buf[0] & 0x80) >> 7) << 8) | (unsigned short)read_buf[2];
-    
-            events[0].flag= (read_buf[0] >> 4) & 0x03;
-            events[0].id = (read_buf[0] >>2) & 0x01;
-
-            touch_x = events[0].x;
-            touch_y = events[0].y;
-
-            if(events[0].flag == 0 || events[0].flag == 2)
-                touch_down = true;
-            else if(events[0].flag = 1)
-                touch_down = false;
-            // chsc6x_info("chsc6x:   000  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
-            //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id);
-        }else if(2 == CHSC6X_MAX_POINTS_NUM) 
-        {                
-            if ((CHSC6X_RES_MAX_X > 255) || (CHSC6X_RES_MAX_Y > 255) ) 
+        
+        if(read_buf[0] == 0xFD)
+        {
+            //双击亮屏
+            if(touch_filter == 0)
             {
-                events[0].x = (unsigned short)((read_buf[5] & 0x01) << 8) | (unsigned short)read_buf[1];
-                events[0].y = (unsigned short)((read_buf[5] & 0x02) << 7) | (unsigned short)read_buf[2];
-    
-                events[0].flag = (read_buf[0] >> 4) & 0x03;
-                events[0].id = (read_buf[0] >>2) & 0x01;
-                // chsc6x_info("chsc6x:   111  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
-                //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id); 
-    
-                events[1].x = (unsigned short)((read_buf[5] & 0x04) << 6) | (unsigned short)read_buf[3];
-                events[1].y = (unsigned short)((read_buf[5] & 0x08) << 5) | (unsigned short)read_buf[4];
-    
-                events[1].flag = (read_buf[0] >> 6) & 0x03;
-                events[1].id = (read_buf[0] >>3) & 0x01;
-                // chsc6x_info("chsc6x:   222  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
-                //     events[1].x, events[1].y, point_num, events[1].flag, events[1].id);             
-            }else 
+                printf("dbcheck success\n");
+                dbcheck_handle();
+                touch_filter += 1;
+            }
+        }else if(read_buf[0] == 0xFC)
+        {
+            //覆盖灭屏
+            if(touch_filter == 0)
             {
-                events[0].x = read_buf[1];
-                events[0].y = read_buf[2];
-    
-                events[0].flag = (read_buf[0] >> 4) & 0x03;
+                printf("palmcheck success\n");
+                palmcheck_handle();
+                touch_filter += 1;
+            }
+        }else
+        {
+            if(1 == CHSC6X_MAX_POINTS_NUM) 
+            {               
+                events[0].x = (unsigned short)(((read_buf[0] & 0x40) >> 6) << 8) | (unsigned short)read_buf[1];
+                events[0].y = (unsigned short)(((read_buf[0] & 0x80) >> 7) << 8) | (unsigned short)read_buf[2];
+        
+                events[0].flag= (read_buf[0] >> 4) & 0x03;
                 events[0].id = (read_buf[0] >>2) & 0x01;
-                // chsc6x_info("chsc6x:   333  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
-                //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id);                 
-    
-                events[1].x = read_buf[3];
-                events[1].y = read_buf[4];
-    
-                events[1].flag = (read_buf[0] >> 6) & 0x03;
-                events[1].id = (read_buf[0] >>3) & 0x01;
-                // chsc6x_info("chsc6x:   444  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
-                //     events[1].x, events[1].y, point_num, events[1].flag, events[1].id);             
-            } 
 
-            touch_x = events[0].x;
-            touch_y = events[0].y;  
+                touch_x = events[0].x;
+                touch_y = events[0].y;
 
-            touch_down = false;	           
+                if(events[0].flag == 0 || events[0].flag == 2)
+                    touch_down = true;
+                else if(events[0].flag = 1)
+                    touch_down = false;
+                // chsc6x_info("chsc6x:   000  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
+                //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id);
+            }else if(2 == CHSC6X_MAX_POINTS_NUM) 
+            {                
+                if ((CHSC6X_RES_MAX_X > 255) || (CHSC6X_RES_MAX_Y > 255) ) 
+                {
+                    events[0].x = (unsigned short)((read_buf[5] & 0x01) << 8) | (unsigned short)read_buf[1];
+                    events[0].y = (unsigned short)((read_buf[5] & 0x02) << 7) | (unsigned short)read_buf[2];
+        
+                    events[0].flag = (read_buf[0] >> 4) & 0x03;
+                    events[0].id = (read_buf[0] >>2) & 0x01;
+                    // chsc6x_info("chsc6x:   111  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
+                    //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id); 
+        
+                    events[1].x = (unsigned short)((read_buf[5] & 0x04) << 6) | (unsigned short)read_buf[3];
+                    events[1].y = (unsigned short)((read_buf[5] & 0x08) << 5) | (unsigned short)read_buf[4];
+        
+                    events[1].flag = (read_buf[0] >> 6) & 0x03;
+                    events[1].id = (read_buf[0] >>3) & 0x01;
+                    // chsc6x_info("chsc6x:   222  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
+                    //     events[1].x, events[1].y, point_num, events[1].flag, events[1].id);             
+                }else 
+                {
+                    events[0].x = read_buf[1];
+                    events[0].y = read_buf[2];
+        
+                    events[0].flag = (read_buf[0] >> 4) & 0x03;
+                    events[0].id = (read_buf[0] >>2) & 0x01;
+                    // chsc6x_info("chsc6x:   333  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
+                    //     events[0].x, events[0].y, point_num, events[0].flag, events[0].id);                 
+        
+                    events[1].x = read_buf[3];
+                    events[1].y = read_buf[4];
+        
+                    events[1].flag = (read_buf[0] >> 6) & 0x03;
+                    events[1].id = (read_buf[0] >>3) & 0x01;
+                    // chsc6x_info("chsc6x:   444  X:%d, Y:%d, point_num:%d,flag:%d, id:%d \r\n", \
+                    //     events[1].x, events[1].y, point_num, events[1].flag, events[1].id);             
+                } 
+
+                touch_x = events[0].x;
+                touch_y = events[0].y;  
+
+                touch_down = false;	           
+            }
         }
-
         //printf("%s:x = %d, y = %d\n", __func__, touch_x, touch_y);
     }else
     {
@@ -152,13 +193,11 @@ void chsc6x_suspend(void)
     int ret = -1;
     chsc6x_tp_reset();
     ret = chsc6x_write_bytes_u16addr_sub(CHSC6X_I2C_ID, 0xa503, buft, 0);
-
-    chsc6x_info("chsc6x_suspend end\n");
-    // if(ret == 0) {
-    //     chsc6x_info("touch_suspend OK \r\n");
-    // }else{
-    //     chsc6x_info("touch_suspend failed \r\n");
-    // }
+    if(ret == 0) {
+        chsc6x_info("touch_suspend OK \r\n");
+    }else{
+        chsc6x_info("touch_suspend failed \r\n");
+    }
 }
 
 void chsc6x_dbcheck(void)
@@ -172,6 +211,8 @@ void chsc6x_dbcheck(void)
     }else{
         chsc6x_info("Enable dbcheck failed \r\n");
     }
+
+    touch_filter = 0;
 }
 
 void chsc6x_palmcheck(void)
@@ -185,6 +226,8 @@ void chsc6x_palmcheck(void)
     }else{
         chsc6x_info("Enable palmcheck failed \r\n");
     }
+
+    touch_filter = 0;
 }
 
 static void touch_event_handler(void)
@@ -238,8 +281,6 @@ void chsc6x_init(void)
 
     chsc6x_tp_reset();
 
-    printf("%s:%d\n", __func__, tp_iic_hdl());
-
     for(i = 0; i < 3; i++) 
     {
         ret = chsc6x_tp_dect(&fw_infos, &fw_update_ret_flag);
@@ -273,6 +314,8 @@ void chsc6x_init(void)
     // io配置在板级，定义在板级头文件，这里只是注册回调函数
     port_edge_wkup_set_callback_by_index(1, touch_int_handler); // 序号需要和板级配置中的wk_param对应上
 #endif
+
+    chsc6x_palmcheck();
 }
 #endif
 

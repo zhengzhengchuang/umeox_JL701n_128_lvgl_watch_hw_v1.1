@@ -59,12 +59,10 @@ static const char *text_src[Elem_Num] =
 #endif
 };
 
-static const u16 ec_h = 112;
-static const uint8_t ec_idx[Elem_Num] =
-{
+static const u16 ec_h = 118;
+static const uint8_t ec_idx[Elem_Num] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
 };
-
 
 static int16_t scroll_y;
 static int16_t scroll_top_y;
@@ -143,17 +141,29 @@ static void elem_container_cb(lv_event_t *e)
 {
     if(!e) return;
 
+#if 0
+    ui_act_id_t act_id;
     uint8_t idx = *(uint8_t *)lv_event_get_user_data(e);
     int cur_lang = GetVmParaCacheByLabel(vm_label_sys_language);
-    if(idx == cur_lang)
-        return;
+    if(dev_bond_flag == false)
+    {
+        act_id = ui_act_id_dev_bond;
+        SetVmParaCacheByLabel(vm_label_sys_language, idx);
+        ui_menu_jump(act_id);
+    }else
+    {
+        if(idx == cur_lang) return;
+        act_id = p_ui_info_cache->cur_act_id;
+        SetVmParaCacheByLabel(vm_label_sys_language, idx);
+        ui_menu_jump(act_id);
+    }
+#else
+    u8 idx = *(u8 *)lv_event_get_user_data(e);
+    int cur_lang = GetVmParaCacheByLabel(vm_label_sys_language);
+    if(idx == cur_lang) return;
+    SetVmParaCacheByLabel(vm_label_sys_language, idx);
+#endif     
 
-    cur_lang = idx;
-    SetVmParaCacheByLabel(vm_label_sys_language, cur_lang);
-
-    ui_act_id_t act_id = p_ui_info_cache->cur_act_id;
-    ui_menu_jump(act_id);
-    
     return;
 }
 
@@ -218,8 +228,7 @@ static void elem_ctx_all_create(menu_align_t menu_align)
 
 static void menu_layout_create(void)
 {
-    menu_align_t menu_align = \
-        menu_align_left;
+    menu_align_t menu_align = menu_align_left;
     if(lang_txt_is_arabic())
         menu_align = menu_align_right;
 
@@ -234,7 +243,16 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
+#if 0
+    dev_bond_flag = GetDevBondFlag();
+    ui_act_id_t prev_act_id;
+    if(dev_bond_flag == true)
+        prev_act_id = ui_act_id_set_main;
+    else
+        prev_act_id = ui_act_id_null;
+#else
     ui_act_id_t prev_act_id = ui_act_id_set_main;
+#endif
     if(!lang_txt_is_arabic())
         tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
             prev_act_id, ui_act_id_null, ui_act_id_lang_sel);
@@ -247,6 +265,15 @@ static void menu_create_cb(lv_obj_t *obj)
 
 static void menu_destory_cb(lv_obj_t *obj)
 {
+#if 0
+    if(dev_bond_flag == false)
+    {
+        scroll_y = 0;
+        scroll_top_y = 0;
+        scroll_bottom_y = 0;
+    }
+#endif
+
     return;
 }
 

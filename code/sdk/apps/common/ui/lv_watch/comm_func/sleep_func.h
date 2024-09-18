@@ -7,6 +7,8 @@ extern "C" {
 
 #include "../include/ui_menu.h"
 
+#define Sleep_Debug (0)
+
 #define SlpStartH (20)
 #define SlpEndH (8)
 
@@ -32,6 +34,9 @@ extern struct SleepSummaryOutput slp_out;
 bool GetSleepEnState(void);
 void SetSleepEnState(bool en);
 
+u8 GetSlpPpgWearState(void);
+void SetSlpPpgWearState(u8 state);
+
 bool GetFallAsleepFlag(void);
 void SetFallAsleepFlag(bool f);
 
@@ -40,7 +45,7 @@ void SetSlpPpgEnState(u8 en);
 
 u8 GetSlpHrRawDataLen(void);
 float *GetSlpHrRawData(void);
-void SetSlpHrRawData(u32 *buf, u16 len);
+void SetSlpHrRawData(int32_t *buf, u16 len);
 
 void PowerOnSetSleepData(void);
 void VmFlashSleepCtxWrite(void);

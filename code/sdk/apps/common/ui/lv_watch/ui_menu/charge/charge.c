@@ -22,7 +22,6 @@ static void menu_refresh_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-#if 1
     u8 charge_power = GetChargePowerFlag();
     if(charge_power == 0)
     {
@@ -37,7 +36,6 @@ static void menu_refresh_cb(lv_obj_t *obj)
     else
         txt_id = lang_txtid_charging;
     lv_label_set_text(charge_label, get_lang_txt_with_id(txt_id));
-#endif
 
     return;
 }
@@ -47,8 +45,8 @@ static void menu_display_cb(lv_obj_t *obj)
     if(!obj) return;
 
     u8 power_per;
-    u8 charge_power = GetChargePowerFlag();
-    if(charge_power == 1)
+    u8 chg_power = GetChargePowerFlag();
+    if(chg_power == 1)
         power_per = 100;
     else
         power_per = GetBatteryPower();
@@ -72,7 +70,10 @@ static void menu_display_cb(lv_obj_t *obj)
     widget_arc_para.arc_indic_is_rounded = true;
     widget_arc_para.arc_click_is_clear = true;
     power_arc = common_widget_arc_create(&widget_arc_para);
-    lv_obj_align(power_arc, LV_ALIGN_TOP_MID, 0, 46);
+    if(chg_power == 1)
+        lv_obj_align(power_arc, LV_ALIGN_CENTER, 0, 0);
+    else
+        lv_obj_align(power_arc, LV_ALIGN_TOP_MID, 0, 46);
 
     widget_img_para.img_parent = power_arc;
     widget_img_para.file_img_dat = charge_00_index;
@@ -98,6 +99,8 @@ static void menu_display_cb(lv_obj_t *obj)
     widget_label_para.label_text = get_lang_txt_with_id(txt_id);
     charge_label = common_widget_label_create(&widget_label_para);
     lv_obj_align(charge_label, LV_ALIGN_TOP_MID, 0, 344);
+    if(chg_power == 1)
+        lv_obj_add_flag(charge_label, LV_OBJ_FLAG_HIDDEN);
 
     return;
 }
@@ -119,7 +122,7 @@ register_ui_menu_load_info(\
     .menu_id = \
         ui_act_id_charge,
     .user_offscreen_time = 0,
-    .user_refresh_time_inv = 100,
+    .user_refresh_time_inv = 0,
     .key_func_cb = menu_key_cb,
     .create_func_cb = menu_create_cb,
     .destory_func_cb = menu_destory_cb,

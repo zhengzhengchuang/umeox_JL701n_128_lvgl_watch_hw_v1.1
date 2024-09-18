@@ -3,6 +3,7 @@ import struct
 
 #自定义头名字
 head_name = 'file'
+#ui_version = 1#初始化ui版本
 
 # 打开文件并读取内容
 # file_path = "H-name.txt"  # 将文件路径替换为你的文件路径

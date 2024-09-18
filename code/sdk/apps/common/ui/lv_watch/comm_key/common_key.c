@@ -21,13 +21,15 @@ void set_menu_timer_lock_flag(bool flag)
 
 void common_key_msg_handle(int key_value, int key_event)
 {
-    bool power_on = \
-        GetPowerOnStatus();
-    if(power_on == true)
-        return;
+    bool power_on = GetPowerOnStatus();
+    if(power_on == true) return;
     
-    printf("key_value = %d, key_event = %d\n", \
-        key_value, key_event);
+    printf("key_value = %d, key_event = %d\n", key_value, key_event);
+
+    u8 chg_state = GetChargeState();
+    bool BondFlag = GetDevBondFlag();
+    ui_act_id_t cur_act_id = p_ui_info_cache->cur_act_id;
+    bool menu_lock = p_ui_info_cache->menu_load_info.lock_flag;
 
     if(lcd_sleep_status())
     {
@@ -37,20 +39,7 @@ void common_key_msg_handle(int key_value, int key_event)
         if(key_event == KEY_EVENT_CLICK)
         {
             /************按键亮屏显示页************/
-            ui_act_id_t act_id = ui_act_id_watchface;
-            ui_menu_load_info_t *menu_load_info = \
-                &p_ui_info_cache->exit_menu_load_info;
-            bool lock_flag = get_menu_timer_lock_flag();
-            if(menu_load_info->lock_flag == true)
-            {
-                act_id = menu_load_info->menu_id;
-            }else
-            {
-                if(lock_flag == true && menu_load_info->menu_id != ui_act_id_null)
-                    act_id = menu_load_info->menu_id;
-            }
-            
-            ui_menu_jump(act_id);
+            common_brightscreen_handle();
         }
     }else
     {
@@ -60,11 +49,6 @@ void common_key_msg_handle(int key_value, int key_event)
         /*******亮屏按键操作时，需重置熄屏定时器*******/
         common_offscreen_timer_restart();
 
-        bool menu_lock = \
-            p_ui_info_cache->menu_load_info.lock_flag;
-        ui_act_id_t cur_act_id = \
-            p_ui_info_cache->cur_act_id;
-
         if(key_value == Common_Key_Val_1)//电源键
         {
             if(key_event == KEY_EVENT_CLICK)
@@ -72,11 +56,14 @@ void common_key_msg_handle(int key_value, int key_event)
                 common_offscreen_handle();
             }else if(key_event == KEY_EVENT_LONG_3S)
             {
-                bool BondFlag = GetDevBondFlag();
-                if(BondFlag == false && cur_act_id == ui_act_id_dev_bond)
-                    ui_menu_jump(ui_act_id_device_op);
-                else
+                if(BondFlag == false)
+                {
+                    if(chg_state == 0)
+                        ui_menu_jump(ui_act_id_device_op);
+                }else
+                {
                     DevOpMenuPopUp();
+                }    
             }
         }else if(key_value == Common_Key_Val_0)//Home键
         {
@@ -87,13 +74,19 @@ void common_key_msg_handle(int key_value, int key_event)
                     /*在表盘页面下，菜单键点击进入菜单列表*/
                     ui_menu_jump(ui_act_id_menu);
                     return;
-                }
-
-                if(menu_lock == false)
+                }else
                 {
-                    /*如果当前页面没有锁定，直接home到表盘*/
-                    ui_menu_jump(ui_act_id_watchface);
-                    return;
+                    // if(cur_act_id == ui_act_id_bond_lang && BondFlag == false)
+                    // {
+                    //     //处于未绑定开机语言选择页面
+                    //     return;
+                    // }
+
+                    if(menu_lock == false)
+                    {
+                        ui_menu_jump(ui_act_id_watchface);
+                        return;
+                    }
                 }
             }else if(key_event == KEY_EVENT_DOUBLE_CLICK)
             {
@@ -124,10 +117,10 @@ void common_key_msg_handle(int key_value, int key_event)
 #endif
 #endif
             }
-#if 0
+#if 1
             else if(key_event == KEY_EVENT_FIRTH_CLICK)
             {
-                bool BondFlag = GetDevBondFlag();
+                //bool BondFlag = GetDevBondFlag();
                 if(BondFlag == false && cur_act_id == ui_act_id_dev_bond)
                     ui_menu_jump(ui_act_id_watchface);
             }
@@ -147,4 +140,3 @@ void common_key_msg_handle(int key_value, int key_event)
 
     return;
 }
-

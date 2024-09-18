@@ -33,7 +33,7 @@ void OtaUpgradeHandle(void)
 
 void OtaUpgradeFailHandle(void)
 {
-    AppCtrlLcdEnterSleep(1);
+    AppCtrlLcdEnterSleep(true);
     cpu_reset();
 
     return;

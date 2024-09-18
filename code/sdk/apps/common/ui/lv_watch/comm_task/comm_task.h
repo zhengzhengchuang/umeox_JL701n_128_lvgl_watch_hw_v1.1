@@ -27,6 +27,8 @@ enum
     comm_msg_dev_reset,
 
     comm_msg_power_update,
+
+    comm_msg_sleep_test,
 };
 
 void CommTaskCreate(void);

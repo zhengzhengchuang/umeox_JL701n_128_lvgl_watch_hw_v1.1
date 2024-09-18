@@ -1,7 +1,10 @@
+
 #include "../lv_watch.h"
 
-extern void CtrlGh30xModuleStop(void);
-extern void CtrlGh30xModuleStart(uint8_t work_type);
+extern void hx3605_module_start(uint8_t work_type);
+extern void hx3605_module_stop(void);
+extern void hx3605_agc_timeout_handle(void);
+extern void hx3605_ppg_timeout_handle(void);
 
 /****gomore与加速度计参数配套*****/
 #define FifoSize (HrGs_Fifo_WM*6*5)
@@ -10,23 +13,19 @@ static u32 Rlen;
 static u32 Widx;
 static u32 Ridx;
 static u8 WFifoData[FifoSize];
-static u8 RFifoData[FifoSize];
+
+#define RMaxCnt (12)
+#define RFifoLen (RMaxCnt*6)
+static u8 RFifoData[RFifoLen];
+
+//static u8 FifoWFlag;
 
 static void HrGsFifoParaInit(void)
 {
-    Wlen = 0;
-    Rlen = 0;
-    Widx = 0;
-    Ridx = 0;
-    memset(WFifoData, 0, FifoSize);
-    memset(RFifoData, 0, FifoSize);
-
-    return;
-}
-
-static void PpgProcessHandle(void)
-{
-    hal_gh30x_int_handler_bottom_half();
+    Wlen = 0; Rlen = 0;
+    Widx = 0; Ridx = 0;
+    memset(WFifoData, 0, sizeof(WFifoData));
+    memset(RFifoData, 0, sizeof(RFifoData));
 
     return;
 }
@@ -34,18 +33,20 @@ static void PpgProcessHandle(void)
 static void PpgEnableModuleHandle(int *msg)
 {
     HrGsFifoParaInit();
-
-    SetPpgWorkType((u8)msg[1]);
+    SetPpgUnwearCnt(0);
     SetPpgWearStatus(true);
     SetPpgEnableFlag(true);
-    CtrlGh30xModuleStart((u8)msg[1]);
-    
+
+    u8 work_type = msg[1];
+    SetPpgWorkType(work_type);
+    hx3605_module_start(work_type);
+ 
     return;
 }
 
 static void PpgDisableModuleHandle(void)
 {
-    CtrlGh30xModuleStop();
+    hx3605_module_stop();
     SetPpgWorkType(PpgWorkNone);
     SetPpgEnableFlag(false);
 
@@ -55,7 +56,7 @@ static void PpgDisableModuleHandle(void)
 static void PpgTask(void *p)
 {
     int ret;
-    int msg[8] = {0};
+    int msg[32] = {0};
 
     HrGsFifoParaInit();
     DisablePpgModule();
@@ -88,16 +89,20 @@ void PpgTaskMsgHandle(int *msg, u8 len)
 
     switch(cmd)
     {
-        case PpgMsgProcess:
-            PpgProcessHandle();
-            break;
-
         case PpgMsgEnable:
             PpgEnableModuleHandle(msg);  
             break;
 
         case PpgMsgDisable:
             PpgDisableModuleHandle();
+            break;
+
+        case PpgMsgAgcTimeout:
+            hx3605_agc_timeout_handle();
+            break;
+
+        case PpgMsgPpgTimeout:
+            hx3605_ppg_timeout_handle();
             break;
 
         default:
@@ -192,6 +197,18 @@ void SetPpgEnableFlag(bool en)
     return;
 }
 
+static u8 UnwearCnt;
+u8 GetPpgUnwearCnt(void)
+{
+    return UnwearCnt;
+}
+
+void SetPpgUnwearCnt(u8 cnt)
+{
+    UnwearCnt = cnt;
+    return;
+}
+
 static bool PpgWear = true;
 bool GetPpgWearStatus(void)
 {
@@ -206,139 +223,126 @@ void SetPpgWearStatus(bool wear)
 void HrGsDataFifoWrite(u8 *w_buf, u32 w_len)
 {
     bool BondFlag = GetDevBondFlag();
-    if(BondFlag == false) 
-        return;
+    if(BondFlag == false) return;
 
     bool PpgEn = GetPpgEnableFlag();
-    if(PpgEn == false)
-        return;
+    if(PpgEn == false) return;
 
+    //FifoWFlag = 1;
+
+    u32 idx = 0;
     u8 *pW = WFifoData;
     if(Widx + w_len <= FifoSize)
     {
-        memcpy(&pW[Widx], w_buf, w_len);
-
+        memcpy(&pW[Widx], &w_buf[idx], w_len);
         Widx += w_len;
-        Widx %= FifoSize;
-    }
+    }else
+    {
+        u32 remain = FifoSize - Widx;
+        memcpy(&pW[Widx], &w_buf[idx], remain);
+        idx += remain;
 
+        Widx = 0;
+        remain = w_len - remain;//20
+        memcpy(&pW[Widx], &w_buf[idx], remain);
+        Widx += remain;
+    }
     Wlen += w_len;
+
+    //FifoWFlag = 0;
 
     return;
 }
 
-static const u8 bogs_rlen = 30;
-static const u8 hrgs_rlen = 30;
-void HrGsDataFifoRead(ST_GS_DATA_TYPE *gs_data, u16 *gs_len)
+#define HrGsR (10)
+u32 HrGsDataFifoRead(s16 *acc_x, s16 *acc_y, s16 *acc_z)
 {
+    u32 count = 0;
+
     bool BondFlag = GetDevBondFlag();
-    if(BondFlag == false) 
-        return;
+    if(BondFlag == false) return count;
 
     bool PpgEn = GetPpgEnableFlag();
-    if(PpgEn == false)
-        return;
+    if(PpgEn == false) return count;
 
-    u32 r_len;
+    count = HrGsR;
 
-    u8 work = GetPpgWorkType();
-    if(work == PpgWorkHr)
-        r_len = hrgs_rlen*6;
-    else if(work == PpgWorkBo)
-        r_len = bogs_rlen*6;
-    else
-        return;
-
-    if(Rlen + r_len > Wlen)
-    {
-        if(Rlen >= Wlen) return;
-
-        r_len = Wlen - Rlen;
-        r_len -= (r_len % 6);
-
-        if(r_len == 0) return;
-    }
-    Rlen += r_len;
-
-    u32 r_idx = Ridx;
     u8 *pR = RFifoData;
     u8 *pW = WFifoData;
-    if(Ridx + r_len <= FifoSize)
+
+    /* 当前fifo正在写，用上一帧的数据 */
+    //if(FifoWFlag == 1) goto __end;
+
+    if(Wlen <= Rlen) goto __end;
+    
+    u32 r_len = count*6;
+    memset(pR, 0, RFifoLen);
+
+    //用新数据
+    u32 fifo_len = Wlen - Rlen;//20
+
+    //printf("fifo_len = %d\n", fifo_len);
+    //printf("Wlen = %d, Rlen = %d\n", Wlen, Rlen);
+
+    u32 len;
+    if(fifo_len >= r_len)
+        len = r_len;
+    else
+        len = fifo_len;
+
+    if(Ridx + len <= FifoSize)
     {
-        memcpy(&pR[Ridx], &pW[Ridx], r_len);
-        Ridx += r_len;
-        Ridx %= FifoSize;
+        memcpy(pR, &pW[Ridx], len);
+        Ridx += len;
     }else
     {
-        u32 remain_len = FifoSize - Ridx;
-        memcpy(&pR[Ridx], &pW[Ridx], remain_len);
+        u32 idx = 0;
+        u32 remain = FifoSize - Ridx;
+        if(remain > 0)
+        {
+            memcpy(&pR[idx], &pW[Ridx], remain);
+            idx += remain;
+        }
+
         Ridx = 0;
-        memcpy(&pR[Ridx], &pW[Ridx], r_len - remain_len);
-        Ridx += (r_len - remain_len);
-    }
-  
-    u8 FifoData[6];
-    s16 AccData[3];
-
-    if(r_idx + r_len <= FifoSize)
-    {
-        for(u32 i = 0; i < r_len/6; i++)
+        remain = len - remain;
+        if(remain > 0)
         {
-            memcpy(FifoData, &pR[r_idx], 6);
-
-            AccData[0] = (s16)(((u16)FifoData[1]<<8)|(FifoData[0]));
-            AccData[1] = (s16)(((u16)FifoData[3]<<8)|(FifoData[2]));
-            AccData[2] = (s16)(((u16)FifoData[5]<<8)|(FifoData[4]));
-
-            gs_data[i].sXAxisVal = AccData[0];
-            gs_data[i].sYAxisVal = AccData[1];
-            gs_data[i].sZAxisVal = AccData[2];
-
-            r_idx += 6;
+            memcpy(&pR[idx], &pW[Ridx], remain);
+            Ridx += remain;
         }
-    }else
+    }
+    Rlen += len;
+
+    if(len < r_len)
     {
-        u32 remain_len = FifoSize - r_idx; 
-
-        if(remain_len % 6 == 0)
+        //补齐
+        u32 idx = len;//>0
+        u32 remain = r_len - len;//48 
+        for(u32 i = 0; i < remain/6; i++)
         {
-            u32 i, j;
-            for(i = 0; i < remain_len/6; i++)
-            {
-                memcpy(FifoData, &pR[r_idx], 6);
-
-                AccData[0] = (s16)(((u16)FifoData[1]<<8)|(FifoData[0]));
-                AccData[1] = (s16)(((u16)FifoData[3]<<8)|(FifoData[2]));
-                AccData[2] = (s16)(((u16)FifoData[5]<<8)|(FifoData[4]));
-
-                gs_data[i].sXAxisVal = AccData[0];
-                gs_data[i].sYAxisVal = AccData[1];
-                gs_data[i].sZAxisVal = AccData[2];
-
-                r_idx += 6;
-            }
-
-            r_idx = 0;
-            u32 len = r_len - remain_len;
-            
-            for(j = 0; j < len/6; j++)
-            {
-                memcpy(FifoData, &pR[r_idx], 6);
-
-                AccData[0] = (s16)(((u16)FifoData[1]<<8)|(FifoData[0]));
-                AccData[1] = (s16)(((u16)FifoData[3]<<8)|(FifoData[2]));
-                AccData[2] = (s16)(((u16)FifoData[5]<<8)|(FifoData[4]));
-
-                gs_data[j+i].sXAxisVal = AccData[0];
-                gs_data[j+i].sYAxisVal = AccData[1];
-                gs_data[j+i].sZAxisVal = AccData[2];
-
-                r_idx += 6;
-            }
+            memcpy(&pR[idx + 6*i], &pR[idx + 6*(i-1)], 6);
         }
     }
 
-    *gs_len = r_len/6;
+__end:
+    u32 idx = 0;
+    u8 fifo_data[6];
+    s16 acc_data[3];
+    for(u32 i = 0; i < count; i++)
+    {
+        memcpy(fifo_data, &pR[idx], 6);
 
-    return;
+        acc_data[0] = (s16)(((u16)fifo_data[1]<<8)|(fifo_data[0]));
+        acc_data[1] = (s16)(((u16)fifo_data[3]<<8)|(fifo_data[2]));
+        acc_data[2] = (s16)(((u16)fifo_data[5]<<8)|(fifo_data[4]));
+
+        acc_x[i] = -acc_data[0];
+        acc_y[i] = -acc_data[1];
+        acc_z[i] = acc_data[2];
+
+        idx += 6;
+    }
+
+    return count;
 }

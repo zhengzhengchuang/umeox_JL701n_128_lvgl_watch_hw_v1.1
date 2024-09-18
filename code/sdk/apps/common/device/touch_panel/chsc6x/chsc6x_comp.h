@@ -19,7 +19,6 @@ struct ts_fw_infos {
     unsigned short chsc6x_max_pt_num;   //customer read must after chsc6x_get_chip_info
 };
 
-
 /* FUNC In your systerm init process,Must call this interface function to detec if the TP IC is Chipsemi corp'. 
 /* PARM pfw_infos: to get top 5 fw info in struct ts_fw_infos.
 /* PARM update_ret_flag: point value=1 update succeed; point value=0 update failed, If opend CHSC6X_AUTO_UPGRADE macro.

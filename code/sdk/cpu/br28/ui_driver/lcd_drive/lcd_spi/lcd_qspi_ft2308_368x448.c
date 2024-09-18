@@ -179,7 +179,6 @@ static u32 lcd_spi_ft2308_read_id(void)
     return ((id[0] << 16) | (id[1] << 8) | id[2]);
 }
 
-
 struct imd_param lcd_spi_ft2308_param = 
 {
     .scr_x    = SCR_X,

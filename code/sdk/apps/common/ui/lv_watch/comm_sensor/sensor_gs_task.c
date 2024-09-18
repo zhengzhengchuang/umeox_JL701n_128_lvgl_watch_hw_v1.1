@@ -49,7 +49,11 @@ static void GsIntProcess(void)
     GoGsDataFifoWrite(GsFifoData, fifo_len);
 
     /* 抬腕亮屏与Gs数据配套使用 */
-    RaiseGsDataHandle(GsFifoData, fifo_len);
+    bool raise = IsWristRaiseBrightScr(GsFifoData, fifo_len);
+    if(raise == false)
+    {
+        //IsWristTurnOffScr(GsFifoData, fifo_len);
+    }
 
     return;
 }
@@ -60,6 +64,7 @@ static void GsTask(void *p)
     int msg[8] = {0};
 
     EnableGsModule();
+    //DisableGsModule();
 
     while(1)
     {

@@ -505,9 +505,16 @@ int JL_rcsp_update_msg_deal(void *hdl, u8 event, u8 *msg)
         // if (smart->low_battery_level && (get_self_battery_level() <= (smart->low_battery_level % 10))) { // 防止设置low_battery_level大于10
         //     can_update_flag = UPDATE_FLAG_LOW_POWER;
         // }
-        if(smart->low_battery_level && BatPowerIsAllowOta() == 0)
-            can_update_flag = UPDATE_FLAG_LOW_POWER;
-
+        u8 chg_state = GetChargeState();
+        if(chg_state == 0)
+        {
+            //只有不充电的时候才读取电量
+            if(smart->low_battery_level && BatPowerIsAllowOta() == 0)
+                can_update_flag = UPDATE_FLAG_LOW_POWER;
+        }else{
+            //充电升级不考虑电量低
+        }
+        
         //todo;judge voltage
         JL_resp_inquire_device_if_can_update((u8)msg[0], (u8)msg[1], can_update_flag);
 

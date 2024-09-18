@@ -117,8 +117,7 @@ void SedInfoParaWrite(void)
 {
     for(u8 i = 0; i < 3; i++)
     {
-        int ret = syscfg_write(CFG_SEDENTARY_PARA_INFO, \
-            __this_module, __this_module_size);
+        int ret = syscfg_write(CFG_SEDENTARY_PARA_INFO, __this_module, __this_module_size);
         if(ret == __this_module_size)
             break;
     }
@@ -128,8 +127,7 @@ void SedInfoParaWrite(void)
 
 void SedInfoParaReset(void)
 {
-    int vm_op_len = \
-        sizeof(SedInfoPara_t);
+    int vm_op_len = sizeof(SedInfoPara_t);
 
     memcpy(__this_module, &init, vm_op_len);
 

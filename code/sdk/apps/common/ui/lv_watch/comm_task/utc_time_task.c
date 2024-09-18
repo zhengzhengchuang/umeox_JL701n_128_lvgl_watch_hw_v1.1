@@ -1,10 +1,20 @@
 #include "../lv_watch.h"
 
-void timer_sec_task_handle(void)
+void timer_sec_task_handle(int priv)
 {
+    struct sys_time *ptime = (struct sys_time *)priv;
+
+    // printf("y = %d, m = %d, d = %d\n", ptime->year, ptime->month, ptime->day);
+    // printf("h = %d, m = %d, s = %d\n", ptime->hour, ptime->min, ptime->sec);
+
     /* 定时器秒任务 */
     HrTimerSecProcess();
     BoTimerSecProcess();
+
+#if 1//(Sleep_Debug == 0)
+    /* 隔秒，gomore算法process */
+    GoMoreAlgoProcess(ptime);
+#endif
 
     return;
 }
@@ -66,8 +76,10 @@ void utc_second_task_handle(int priv)
     /* 隔秒，判断回历节日是否到 */
     HcalendarProcess(ptime);
 
-    /* 隔秒，gomore算法process */
-    GoMoreAlgoProcess(ptime);
+// #if !Sleep_Debug
+//     /* 隔秒，gomore算法process */
+//     GoMoreAlgoProcess(ptime);
+// #endif
 
     /* 隔秒，低电提醒process */
     LPRemindProcess(ptime);
@@ -77,3 +89,11 @@ void utc_second_task_handle(int priv)
 
     return;
 }
+
+#if 0//Sleep_Debug
+void sleep_tets(void)
+{
+    GoMoreAlgoProcess(NULL);
+    return;
+}
+#endif

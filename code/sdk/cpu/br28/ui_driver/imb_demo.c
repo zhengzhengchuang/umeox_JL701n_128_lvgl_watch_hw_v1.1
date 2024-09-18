@@ -7206,6 +7206,7 @@ void lv_draw_imb_img_decoded(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_img
         return;        
     }
 #else 
+    //printf("%s:cf = %d\n", __func__, cf);
     if(LV_IMG_CF_RAW != cf) /* 压缩图片 */ 
     {
         lv_draw_sw_img_decoded(draw_ctx, draw_dsc,coords, src_buf, cf);

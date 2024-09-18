@@ -54,7 +54,7 @@
 #define TRANS_ANCS_EN  			  	 1
 
 //AMS profile enable
-#define TRANS_AMS_EN  			  	 0
+#define TRANS_AMS_EN  			  	 1
 
 // #if (defined(TCFG_UI_ENABLE_NOTICE) && (!TCFG_UI_ENABLE_NOTICE))
 // #undef TRANS_ANCS_EN
@@ -94,9 +94,9 @@ static const uint8_t sm_min_key_size = 7;
 
 //连接参数设置
 static const uint8_t connection_update_enable = 1; ///0--disable, 1--enable
-static uint8_t connection_update_cnt = 1; //
+static uint8_t connection_update_cnt = 0; //
 static const struct conn_update_param_t connection_param_table[] = {
-    {48, 64, 10, 600},
+   // {48, 64, 10, 600},
     {25, 32, 16, 600},
     {12, 28, 14, 600},//11
     {8,  20, 20, 600},//3.7
@@ -396,7 +396,7 @@ static void smart_att_check_remote_result(u16 con_handle, remote_type_e remote_t
 {
     log_info("smart %02x:remote_type= %02x\n", con_handle, remote_type);
     connect_remote_type = remote_type;
-    //to do
+    SetRemoteSystemType(remote_type);
     if (pair_reconnect_flag == 1 && connect_remote_type == REMOTE_TYPE_IOS) { //ble回连ios时启动edr回连
         if (is_bredr_close() == 1) {
             bredr_conn_last_dev();
@@ -681,52 +681,69 @@ static void cbk_packet_handler(uint8_t packet_type, uint16_t channel, \
                 break;
     #endif
 
-    #if TRANS_AMS_EN
+#if TRANS_AMS_EN
             case HCI_EVENT_AMS_META:
-                switch (packet[2]) {
-                case AMS_SUBEVENT_CLIENT_NOTIFICATION: {
-                    log_info("AMS_SUBEVENT_CLIENT_NOTIFICATION\n");
-                    u16 Entity_Update_len = little_endian_read_16(packet, 7);
-                    u8 *Entity_Update_data = (void *)little_endian_read_32(packet, 9);
-                    /* log_info("EntityID:%d, AttributeID:%d, Flags:%d, utf8_len(%d):",\ */
-                    /* Entity_Update_data[0],Entity_Update_data[1],Entity_Update_data[2],Entity_Update_len-3); */
-                    log_info("%s(%s), Flags:%d, utf8_len(%d)", ams_get_entity_id_name(Entity_Update_data[0]),
-                            ams_get_entity_attribute_name(Entity_Update_data[0], Entity_Update_data[1]),
-                            Entity_Update_data[2], Entity_Update_len - 3);
+                switch (packet[2]) 
+                {
+                    case AMS_SUBEVENT_CLIENT_NOTIFICATION: 
+                    {
+                        //log_info("AMS_SUBEVENT_CLIENT_NOTIFICATION\n");
+                        u16 Entity_Update_len = little_endian_read_16(packet, 7);
+                        u8 *Entity_Update_data = (void *)little_endian_read_32(packet, 9);
+                        /* log_info("EntityID:%d, AttributeID:%d, Flags:%d, utf8_len(%d):",\ */
+                        /* Entity_Update_data[0],Entity_Update_data[1],Entity_Update_data[2],Entity_Update_len-3); */
+                        #if 0
+                        log_info("%s(%s), Flags:%d, utf8_len(%d)", ams_get_entity_id_name(Entity_Update_data[0]),
+                                ams_get_entity_attribute_name(Entity_Update_data[0], Entity_Update_data[1]),
+                                Entity_Update_data[2], Entity_Update_len - 3);
+                        #endif
+                        u8 str_len = Entity_Update_len - 3;
+                        const char *attribute_name = ams_get_entity_attribute_name(Entity_Update_data[0], Entity_Update_data[1]);
 
-    #if 1 //for printf debug
-                    static u8 music_files_buf[128];
-                    u8 str_len = Entity_Update_len - 3;
-                    if (str_len > sizeof(music_files_buf)) {
-                        str_len = sizeof(music_files_buf) - 1;
+                        if(strcmp(attribute_name, "AttrIDArtist") == 0)
+                            SetAmsMusicTitle(&Entity_Update_data[3], str_len);
+                   
+                        if(strcmp(attribute_name, "AttrIDPlaybackInfo") == 0)
+                            SetAmsMusicPlayState(Entity_Update_data[3]);
+         
+                        if(strcmp(attribute_name, "AttrIDVolume") == 0)
+                            SetAmsMusicVolume(&Entity_Update_data[3], str_len);
+#if 0 //for printf debug
+                        static u8 music_files_buf[128];
+                        //u8 str_len = Entity_Update_len - 3;
+                        if (str_len > sizeof(music_files_buf)) {
+                            str_len = sizeof(music_files_buf) - 1;
+                        }
+                        memcpy(music_files_buf, &Entity_Update_data[3], str_len);
+                        music_files_buf[str_len] = 0;
+                        printf("string:%s\n", music_files_buf);
+                        // if(strcmp("AttrIDTitle", ams_get_entity_attribute_name(Entity_Update_data[0], Entity_Update_data[1])) == 0)
+                        // {
+                        //     printf("AttrIDTitle");
+                        //     SetAmsMusicTitle(music_files_buf, str_len);
+                        // }
+#endif
+                        //log_info_hexdump(&Entity_Update_data[3], Entity_Update_len - 3);
+                        /* if (Entity_Update_data[0] == 1 && Entity_Update_data[1] == 2) { */
+                        /* log_info("for test: send pp_key"); */
+                        /* ams_send_request_command(AMS_RemoteCommandIDTogglePlayPause); */
+                        /* } */
                     }
-                    memcpy(music_files_buf, &Entity_Update_data[3], str_len);
-                    music_files_buf[str_len] = 0;
-                    printf("string:%s\n", music_files_buf);
-    #endif
+                        break;
 
-                    log_info_hexdump(&Entity_Update_data[3], Entity_Update_len - 3);
-                    /* if (Entity_Update_data[0] == 1 && Entity_Update_data[1] == 2) { */
-                    /* log_info("for test: send pp_key"); */
-                    /* ams_send_request_command(AMS_RemoteCommandIDTogglePlayPause); */
-                    /* } */
+                    case AMS_SUBEVENT_CLIENT_CONNECTED:
+                        log_info("AMS_SUBEVENT_CLIENT_CONNECTED\n");
+                        break;
+
+                    case AMS_SUBEVENT_CLIENT_DISCONNECTED:
+                        log_info("AMS_SUBEVENT_CLIENT_DISCONNECTED\n");
+                        break;
+
+                    default:
+                        break;
                 }
                 break;
-
-                case AMS_SUBEVENT_CLIENT_CONNECTED:
-                    log_info("AMS_SUBEVENT_CLIENT_CONNECTED\n");
-                    break;
-
-                case AMS_SUBEVENT_CLIENT_DISCONNECTED:
-                    log_info("AMS_SUBEVENT_CLIENT_DISCONNECTED\n");
-                    break;
-
-
-                default:
-                    break;
-                }
-                break;
-    #endif
+#endif
             }
             break;
     }
@@ -882,12 +899,14 @@ static int att_write_callback(hci_con_handle_t connection_handle, \
             att_set_ccc_config(handle, buffer[0]);
             can_send_now_wakeup();
 #if TCFG_BLE_BRIDGE_EDR_ENALBE
+            //printf("_____pair_reconnect_flag = %d\n", pair_reconnect_flag);
             if (buffer[0] == 1 && pair_reconnect_flag == 1) 
             {
                 if(connect_remote_type == REMOTE_TYPE_IOS) 
                 {
                     /*set tag,ios ble回连后，检查认证通过后发起edr连接*/
                     check_rcsp_auth_flag = 1;
+                    printf("check_rcsp_auth_flag\n");
                 }
             }
 #endif
@@ -1080,13 +1099,9 @@ void ble_profile_init(void)
     le_device_db_init();
 
 #if TCFG_BLE_BRIDGE_EDR_ENALBE
-    ble_sm_setup_init(IO_CAPABILITY_NO_INPUT_NO_OUTPUT, \
-        SM_AUTHREQ_SECURE_CONNECTION | SM_AUTHREQ_BONDING, 7, \
-            SMART_TCFG_BLE_SECURITY_EN);
+    ble_sm_setup_init(IO_CAPABILITY_NO_INPUT_NO_OUTPUT, SM_AUTHREQ_SECURE_CONNECTION | SM_AUTHREQ_BONDING, 7, SMART_TCFG_BLE_SECURITY_EN);
 #else
-    ble_sm_setup_init(IO_CAPABILITY_NO_INPUT_NO_OUTPUT, \
-        SM_AUTHREQ_MITM_PROTECTION | SM_AUTHREQ_BONDING, 7, \
-            SMART_TCFG_BLE_SECURITY_EN);
+    ble_sm_setup_init(IO_CAPABILITY_NO_INPUT_NO_OUTPUT, SM_AUTHREQ_MITM_PROTECTION | SM_AUTHREQ_BONDING, 7, SMART_TCFG_BLE_SECURITY_EN);
 #endif
 
     /* setup ATT server */
@@ -1108,8 +1123,7 @@ void ble_profile_init(void)
     }
 #endif
 
-    printf("client_num = %d\n", \
-        config_le_gatt_client_num);
+    //printf("client_num = %d\n", config_le_gatt_client_num);
     if(config_le_gatt_client_num)
         gatt_client_init();
 
@@ -1134,7 +1148,6 @@ void ble_profile_init(void)
 
 void ble_profile_again_init(u8 enable)
 {
-
     u8 tmp_ble_addr[6];
 
     if(enable) 
@@ -1307,6 +1320,7 @@ static int get_buffer_vaild_len(void *priv)
 static int app_send_user_data_do(void *priv, u8 *data, u16 len)
 {
 #if TCFG_BLE_BRIDGE_EDR_ENALBE
+
     if(check_rcsp_auth_flag) 
     {
         /*触发检测是否认证通过,通过后回连edr*/

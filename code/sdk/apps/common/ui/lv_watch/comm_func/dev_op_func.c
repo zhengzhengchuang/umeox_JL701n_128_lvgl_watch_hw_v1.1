@@ -41,15 +41,15 @@ void DevOpMenuPopUp(void)
     if(!MenuSupportPopup()) return;
 
     ui_menu_jump(ui_act_id_device_op);
-
+    
     return;
 }
 
 void DevOpResetHandle(void)
 {
     /* 充电中... */ 
-    // u8 charge_state = GetChargeState();
-    // if(charge_state == 1) return;
+    u8 chg_state = GetChargeState();
+    if(chg_state == 1) return;
 
     ResetAllVmData();
 
@@ -67,8 +67,8 @@ void DevOpResetHandle(void)
 void DevOpRestartHandle(void)
 {
     /* 充电中... */ 
-    // u8 charge_state = GetChargeState();
-    // if(charge_state == 1) return;
+    u8 chg_state = GetChargeState();
+    if(chg_state == 1) return;
 
     PowerOffVmDataWrite();
     //DevAllSensorDisable();
@@ -81,8 +81,8 @@ void DevOpRestartHandle(void)
 void DevOpShutdownHandle(void)
 {  
     /* 充电中... */ 
-    // u8 charge_state = GetChargeState();
-    // if(charge_state == 1) return;
+    u8 chg_state = GetChargeState();
+    if(chg_state == 1) return;
 
     PowerOffVmDataWrite();
     //DevAllSensorDisable();

@@ -8,10 +8,8 @@ static void roller_cb(lv_event_t *e)
 {
     if(!e) return;
 
-    lv_obj_t *obj = \  
-        lv_event_get_target(e);
-    uint16_t roller_sel = \
-        lv_roller_get_selected(obj);
+    lv_obj_t *obj = lv_event_get_target(e);
+    uint16_t roller_sel = lv_roller_get_selected(obj);
     
     int time = 30;
     if(roller_sel == 0)
@@ -24,8 +22,7 @@ static void roller_cb(lv_event_t *e)
         time = 60;
     
     time *= 1000;
-    SetVmParaCacheByLabel(\
-        vm_label_offscreen_time, time);
+    SetVmParaCacheByLabel(vm_label_offscreen_time, time);
 
     printf("time = %d\n", time);
 
@@ -34,26 +31,16 @@ static void roller_cb(lv_event_t *e)
 
 static void title_label_create(lv_obj_t *obj)
 {
-    widget_label_para.label_w = \
-        300;
-    widget_label_para.label_h = \
-        Label_Line_Height;
-    widget_label_para.long_mode = \
-        LV_LABEL_LONG_SCROLL;
-    widget_label_para.text_align = \
-        LV_TEXT_ALIGN_CENTER;
-    widget_label_para.label_text_color = \
-        lv_color_hex(0xffffff);
-    widget_label_para.label_ver_center = \
-        false;
-    widget_label_para.user_text_font = \
-        NULL;
-    widget_label_para.label_parent = \
-        obj;
-    widget_label_para.label_text = \
-        get_lang_txt_with_id(lang_txtid_screen_sleep);
-    lv_obj_t *title_label = \
-        common_widget_label_create(&widget_label_para);
+    widget_label_para.label_w = 300;
+    widget_label_para.label_h = Label_Line_Height;
+    widget_label_para.long_mode = LV_LABEL_LONG_SCROLL;
+    widget_label_para.text_align = LV_TEXT_ALIGN_CENTER;
+    widget_label_para.label_text_color = lv_color_hex(0xffffff);
+    widget_label_para.label_ver_center = false;
+    widget_label_para.user_text_font = NULL;
+    widget_label_para.label_parent = obj;
+    widget_label_para.label_text = get_lang_txt_with_id(lang_txtid_screen_sleep);
+    lv_obj_t *title_label = common_widget_label_create(&widget_label_para);
     lv_obj_align(title_label, LV_ALIGN_TOP_MID, 0, 40);
  
     return;
@@ -63,8 +50,7 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    ui_act_id_t bht_act_id = \
-        ui_act_id_backlight;
+    ui_act_id_t bht_act_id = ui_act_id_backlight;
     if(!lang_txt_is_arabic())
         tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
             bht_act_id, ui_act_id_null, ui_act_id_screen_sleep);

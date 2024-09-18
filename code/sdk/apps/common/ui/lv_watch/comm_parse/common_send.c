@@ -27,11 +27,13 @@ bool umeox_common_le_notify_data(u8 *buf, u8 len)
 {
     int ret;
 
+#if !GoData_Ble
     if(buf == NULL || len == 0)
         return false;
 
     if(len > Cmd_Pkt_Len)
         len = Cmd_Pkt_Len;
+#endif
 
     u8 att_service = BLE_USER_SERVICE;
     struct ble_server_operation_t *ble_server_operation;
@@ -39,7 +41,9 @@ bool umeox_common_le_notify_data(u8 *buf, u8 len)
     ret = ble_server_operation->send_data(&att_service, buf, len);
     if(!ret) return true;
 
+#if !GoData_Ble
     printf("notify fail!!!!!!!!!!!!!!!!!!!!!\n");
+#endif
 
     return false;
 }

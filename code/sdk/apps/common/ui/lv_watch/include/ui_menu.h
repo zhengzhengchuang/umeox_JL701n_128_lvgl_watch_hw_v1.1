@@ -9,6 +9,7 @@ extern "C" {
 #include "../../lvgl/lvgl.h"
 
 #define NOR_DEBUG_DATA 0
+#define FACTORY_TEST_EN 0
 
 #define Always_OnScreen (0x0fffffff)
 

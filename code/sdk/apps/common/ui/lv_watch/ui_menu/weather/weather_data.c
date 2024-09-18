@@ -118,8 +118,8 @@ static void menu_create_cb(lv_obj_t *obj)
     ui_mode_t ui_mode = p_ui_info_cache->ui_mode;
     if(ui_mode == ui_mode_watchface)
     {
-        ui_act_id_t left_act_id = ui_act_id_hr_sample;
-        ui_act_id_t right_act_id = ui_act_id_watchface;
+        ui_act_id_t left_act_id = ui_act_id_bo_sample;
+        ui_act_id_t right_act_id = ui_act_id_sleep_main;
         ui_act_id_t down_act_id;
         if(data_valid)
             down_act_id = ui_act_id_weather_report;

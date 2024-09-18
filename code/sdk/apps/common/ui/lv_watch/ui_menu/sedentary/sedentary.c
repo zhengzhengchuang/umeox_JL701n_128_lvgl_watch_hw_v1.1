@@ -44,7 +44,7 @@ static void menu_display_cb(lv_obj_t *obj)
     widget_label_para.long_mode = LV_LABEL_LONG_WRAP;
     widget_label_para.text_align = LV_TEXT_ALIGN_CENTER;
     widget_label_para.label_text_color = lv_color_hex(0xffffff);
-    widget_label_para.label_ver_center = false;
+    widget_label_para.label_ver_center = true;
     widget_label_para.user_text_font = NULL;
     widget_label_para.label_parent = obj;
     widget_label_para.label_text = get_lang_txt_with_id(lang_txtid_move);

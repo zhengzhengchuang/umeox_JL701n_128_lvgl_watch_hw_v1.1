@@ -402,6 +402,7 @@ static void lcd_reset(struct lcd_drive *lcd)
     if (lcd->reset) {
         lcd->reset();
     } else {
+#if 0
         gpio_set_die(lcd_dat->pin_reset, 1);
         /* gpio_direction_output(lcd_dat->pin_reset, 1); */
         /* os_time_dly(10); */
@@ -411,6 +412,14 @@ static void lcd_reset(struct lcd_drive *lcd)
         gpio_direction_output(lcd_dat->pin_reset, 1);
         os_time_dly(10);
         /* mdelay(100); */
+#else
+        gpio_direction_output(lcd_dat->pin_reset, 1);
+        delay_2ms(8);
+        gpio_direction_output(lcd_dat->pin_reset, 0);
+        delay_2ms(8);
+        gpio_direction_output(lcd_dat->pin_reset, 1);
+        delay_2ms(8);
+#endif
     }
 }
 
@@ -1247,7 +1256,7 @@ int lcd_drv_init(void *p)
         imb_set_memory_func(malloc_vlt, free_vlt);
     }
 
-    lcd_mcpwm_init();
+    //lcd_mcpwm_init();
 
 #endif
 
@@ -1718,8 +1727,10 @@ int lcd_sleep_ctrl(u8 enter)
         //ui_effect_exit();
 #if TCFG_TP_SLEEP_EN
         //ctp_enter_sleep();
-        extern void chsc6x_suspend(void);
-        chsc6x_suspend();
+        extern void chsc6x_dbcheck(void);
+        chsc6x_dbcheck();
+        // extern void chsc6x_suspend(void);
+        // chsc6x_suspend();
 #endif /* #if TCFG_TP_SLEEP_EN */
 #if TP_POWER_DOWN_EN
         tp_drv_power_off();
@@ -1758,8 +1769,10 @@ int lcd_sleep_ctrl(u8 enter)
 #endif
 #if TCFG_TP_SLEEP_EN
         //ctp_exit_sleep();
-        extern void chsc6x_resume(void);
-        chsc6x_resume();
+        // extern void chsc6x_resume(void);
+        // chsc6x_resume();
+        extern void chsc6x_palmcheck(void);
+        chsc6x_palmcheck();
 #endif /* #if TCFG_TP_SLEEP_EN */
 
 #if LCD_POWER_DOWN_EN == 0

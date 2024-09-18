@@ -469,7 +469,26 @@
         "ota_func.h": "c",
         "lv_label.h": "c",
         "upay.h": "c",
-        "alipay.h": "c"
+        "alipay.h": "c",
+        "hx3605_factory_test.h": "c",
+        "hx3605_hrs_agc.h": "c",
+        "hx3605_spo2_agc.h": "c",
+        "hx3605.h": "c",
+        "tyhx_hrs_alg.h": "c",
+        "hx3605_hrv_agc.h": "c",
+        "tyhx_hrv_alg.h": "c",
+        "tyhx_spo2_alg.h": "c",
+        "fs_file_name.h": "c",
+        "bank_switch.h": "c",
+        "database.h": "c",
+        "stdarg.h": "c",
+        "hrsensor_manage.h": "c",
+        "btstack_event.h": "c",
+        "bluetooth.h": "c",
+        "bond_lang.h": "c",
+        "lcd_factory.h": "c",
+        "info_factory.h": "c"
     },
-    "C_Cpp.errorSquiggles": "disabled"
+    "C_Cpp.errorSquiggles": "disabled",
+    "C_Cpp.dimInactiveRegions": true
 }

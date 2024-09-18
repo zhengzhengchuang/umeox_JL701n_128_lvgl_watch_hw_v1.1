@@ -9,7 +9,8 @@ extern "C" {
 
 #define Raise_Gs_WM (Qmi8658_Fifo_WM)
 
-void RaiseGsDataHandle(u8 *w_buf, u32 w_len);
+bool IsWristRaiseBrightScr(u8 *w_buf, u32 w_len);
+bool IsWristTurnOffScr(u8 *w_buf, u32 w_len);
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

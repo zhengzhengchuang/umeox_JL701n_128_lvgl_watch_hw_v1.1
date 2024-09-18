@@ -129,14 +129,25 @@ static void menu_create_cb(lv_obj_t *obj)
 {
     if(!obj) return;
 
-    ui_act_id_t up_act_id = \
-        ui_act_id_weather_data;
-    if(!lang_txt_is_arabic())
+    ui_mode_t ui_mode = p_ui_info_cache->ui_mode;
+    if(ui_mode == ui_mode_watchface)
+    {
+        ui_act_id_t left_act_id = ui_act_id_bo_sample;
+        ui_act_id_t right_act_id = ui_act_id_sleep_main;
+        ui_act_id_t up_act_id = ui_act_id_weather_data;
         tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
-            ui_act_id_null, ui_act_id_null, ui_act_id_weather_report);
-    else
-        tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
-            ui_act_id_null, ui_act_id_null, ui_act_id_weather_report);
+            left_act_id, right_act_id, ui_act_id_weather_report);
+    }else
+    {
+        ui_act_id_t prev_act_id = ui_act_id_menu;
+        ui_act_id_t up_act_id = ui_act_id_weather_data;
+        if(!lang_txt_is_arabic())
+            tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
+                prev_act_id, ui_act_id_null, ui_act_id_weather_report);
+        else
+            tileview_register_all_menu(obj, up_act_id, ui_act_id_null, \
+                ui_act_id_null, prev_act_id, ui_act_id_weather_report);
+    }
 
     return;
 }

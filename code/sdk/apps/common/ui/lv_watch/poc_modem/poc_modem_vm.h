@@ -23,7 +23,7 @@ typedef uint8_t comm_time_format_t;
 *********************************************************************************/
 enum
 {
-    unit_distance_kilometre = 0x00,
+    unit_distance_km = 0x00,
     unit_distance_mile,
     
     unit_distance_num,

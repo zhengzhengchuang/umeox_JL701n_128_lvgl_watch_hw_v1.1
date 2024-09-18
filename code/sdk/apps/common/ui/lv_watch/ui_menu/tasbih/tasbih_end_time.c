@@ -289,8 +289,8 @@ static void menu_display_cb(lv_obj_t *obj)
     tips_label_container = common_widget_obj_create(&widget_obj_para);
     lv_obj_add_flag(tips_label_container, LV_OBJ_FLAG_HIDDEN);
 
-    widget_label_para.label_w = 280;
-    widget_label_para.label_h = Label_Line_Height*2;
+    widget_label_para.label_w = 330;
+    widget_label_para.label_h = Label_Line_Height*4;
     widget_label_para.long_mode = LV_LABEL_LONG_WRAP;
     widget_label_para.text_align = LV_TEXT_ALIGN_CENTER;
     widget_label_para.label_text_color = lv_color_hex(0xFFDF8B);

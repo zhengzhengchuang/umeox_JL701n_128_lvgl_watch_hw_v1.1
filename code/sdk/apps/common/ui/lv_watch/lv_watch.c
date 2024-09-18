@@ -238,8 +238,8 @@ void AppCtrlLcdEnterSleep(bool sleep)
 
     lcd_sleep_ctrl(sleep);
  
-    struct lcd_interface *lcd = lcd_get_hdl();
-    if(lcd->power_ctrl) lcd->power_ctrl(!sleep);
+    // struct lcd_interface *lcd = lcd_get_hdl();
+    // if(lcd->power_ctrl) lcd->power_ctrl(!sleep);
 
     if(!sleep)
     {
@@ -285,7 +285,7 @@ char *GetQRCodeLinkStrBuf(void)
         uint8_t ble_mac_idx = 0;
         char ble_mac_str[18] = {0};
         const u8 *ble_mac = GetDevBleMac();
-
+        
         static u8 dst_ble_mac[6];
         memset(dst_ble_mac, 0, 6);
         swapX(ble_mac, dst_ble_mac, 6);
@@ -402,4 +402,18 @@ u32 GetPedoDataDisM(void)
 {
     u32 dis_m = (u32)(PedoData.distance + 0.5f);
     return dis_m;
+}
+
+/*********************************************************************************
+                                远程系统类型                                    
+*********************************************************************************/
+static u8 remote_type = REMOTE_TYPE_UNKNOWN;
+u8 GetRemoteSystemType(void)
+{
+    return remote_type;
+}
+
+void SetRemoteSystemType(u8 type)
+{
+    remote_type = type;
 }

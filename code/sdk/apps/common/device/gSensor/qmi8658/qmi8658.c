@@ -1307,8 +1307,7 @@ unsigned short qmi8658_read_fifo(unsigned char* data)
 		if((g_imu.cfg.enSensors == QMI8658_ACC_ENABLE)||(g_imu.cfg.enSensors == QMI8658_GYR_ENABLE))
 		{
 			fifo_sensors = 1;
-		}
-		else if(g_imu.cfg.enSensors == QMI8658_ACCGYR_ENABLE)
+		}else if(g_imu.cfg.enSensors == QMI8658_ACCGYR_ENABLE)
 		{
 			fifo_sensors = 2;
 		}

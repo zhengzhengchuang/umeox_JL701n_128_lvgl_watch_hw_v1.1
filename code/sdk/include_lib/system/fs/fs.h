@@ -1,8 +1,6 @@
 #ifndef __FS_H__
 #define __FS_H__
 
-
-
 #include "generic/typedef.h"
 #include "generic/list.h"
 #include "generic/ioctl.h"

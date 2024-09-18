@@ -1935,7 +1935,6 @@ void smartbox_update_flag_clear(void)
 }
 
 #else
-
 void smartbox_extra_flash_opt_dial_nodify(void)
 {
 

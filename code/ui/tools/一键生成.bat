@@ -24,7 +24,7 @@ call 1.run.py
 
 call 2.copy_sdk.bat
 
-::call clean_all.bat
+call clean_all.bat
 
 cd ..
 

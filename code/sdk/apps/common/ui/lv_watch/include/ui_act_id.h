@@ -16,7 +16,7 @@ extern "C" {
 /*********************************************************************************
                                     屏幕UI显示Y偏移                             
 *********************************************************************************/
-#define LCD_UI_Y_OFFSET (20)
+#define LCD_UI_Y_OFFSET (0)
 
 enum
 {
@@ -27,7 +27,7 @@ enum
     ui_watchface_id_04,
     ui_watchface_id_05,
     ui_watchface_id_06,
-    ui_watchface_id_07,
+    //ui_watchface_id_07,
     //ui_watchface_id_08,
     // ui_watchface_id_09,
     // ui_watchface_id_10,
@@ -79,6 +79,7 @@ enum
     /*****绑定相关页面*****/
     ui_act_id_dev_bond,
     ui_act_id_new_bond,
+    ui_act_id_bond_lang,
 
     /*****设置相关页面*****/
     ui_act_id_about,
@@ -158,6 +159,9 @@ enum
 
     /*****心率相关页面*****/
     ui_act_id_hr_sample,
+
+    /* 活动 */
+    ui_act_id_activity,
     
     /*****血氧相关页面*****/
     ui_act_id_bo_sample,
@@ -216,7 +220,10 @@ enum
     ui_act_id_scan_timeout,
 
     /*****工厂测试相关页面*****/
-    ui_act_id_factory,
+    ui_act_id_info_factory,
+    ui_act_id_lcd_factory,
+
+    ui_act_id_gm_test,
 
     ui_act_id_max,
 };

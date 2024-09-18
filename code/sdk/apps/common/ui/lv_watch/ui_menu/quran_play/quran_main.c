@@ -101,10 +101,10 @@ static void menu_create_cb(lv_obj_t *obj)
     ui_mode_t ui_mode = p_ui_info_cache->ui_mode;
     if(ui_mode == ui_mode_watchface)
     {
-        ui_act_id_t left_act_id = \
-            ui_act_id_watchface;
+        ui_act_id_t left_act_id = ui_act_id_prayer_time_main;
+        ui_act_id_t right_act_id = ui_act_id_watchface;
         tileview_register_all_menu(obj, ui_act_id_null, ui_act_id_null, \
-            left_act_id, ui_act_id_null, ui_act_id_quran_main);
+            left_act_id, right_act_id, ui_act_id_quran_main);
     }else
     {
         ui_act_id_t prev_act_id = \

@@ -12,8 +12,9 @@ static void delete_cb(lv_event_t *e)
     id = (num - 1) - id;
     VmMessageDelByIdx(id);
 
-    ui_act_id_t prev_act_id = ui_act_id_msg_list;
-    ui_menu_jump(prev_act_id);
+    ui_act_id_t act_id = \
+        read_menu_return_level_id();
+    ui_menu_jump(act_id);
     
     return;
 }
